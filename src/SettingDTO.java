@@ -1,7 +1,13 @@
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 import java.io.Serializable;
 
-
+@Data
+@Accessors(chain = true)
 public class SettingDTO implements Serializable {
+
+    private static final long serialVersionUID = -6648501639112088941L;
 
     private Integer life;
 
@@ -13,59 +19,4 @@ public class SettingDTO implements Serializable {
 
     private String userId;
 
-    public Integer getLife() {
-        return life;
-    }
-
-    public SettingDTO setLife(Integer life) {
-        this.life = life;
-        return this;
-    }
-
-    public Integer getSize() {
-        return size;
-    }
-
-    public SettingDTO setSize(Integer size) {
-        this.size = size;
-        return this;
-    }
-
-    public Integer getPeriod() {
-        return period;
-    }
-
-    public SettingDTO setPeriod(Integer period) {
-        this.period = period;
-        return this;
-    }
-
-    public Integer getBrickCount() {
-        return brickCount;
-    }
-
-    public SettingDTO setBrickCount(Integer brickCount) {
-        this.brickCount = brickCount;
-        return this;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public SettingDTO setUserId(String userId) {
-        this.userId = userId;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "SettingDTO{" +
-                "life=" + life +
-                ", size=" + size +
-                ", period=" + period +
-                ", brickCount=" + brickCount +
-                ", userId='" + userId + '\'' +
-                '}';
-    }
 }
