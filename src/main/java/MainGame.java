@@ -1,5 +1,4 @@
 import cn.hutool.core.util.StrUtil;
-import support.UserSupporter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +11,6 @@ import static javax.swing.SwingUtilities.invokeLater;
 public class MainGame extends JFrame {
     private static final long serialVersionUID = -4482258986636771110L;
     public JPanel jPanel = new JPanel();
-    DataBase data = new DataBase();
     public JButton singleGame = new JButton("单人游戏");
     public JButton gameSetting = new JButton("游戏设置");
     public JButton escapeGame = new JButton("退出游戏");
@@ -28,7 +26,7 @@ public class MainGame extends JFrame {
 
     public MainGame() {
 
-        String _userId = UserSupporter.loadCurrentLoggedInUser();
+        String _userId = GameSupporter.loadCurrentLoggedInUser();
         if (StrUtil.isBlank(_userId)) {
             register.setBounds(190, 470, 180, 60);
             register.setFont(font);
@@ -170,7 +168,7 @@ public class MainGame extends JFrame {
                 new Login();
             }
             if (e.getSource() == loginOut) {
-                UserSupporter.logout();
+                GameSupporter.logout();
                 JOptionPane.showMessageDialog(null, "退出登录成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
                 setVisible(false);
                 new MainGame();

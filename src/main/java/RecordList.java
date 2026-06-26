@@ -1,151 +1,163 @@
+import cn.hutool.core.lang.Opt;
+import db.BreakoutMapper;
+import db.MapperExecutor;
+import dto.RecordRankTableModel;
+import dto.User;
+import ui.SwingActionFactory;
+import ui.SwingFormFactory;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.ResultSet;
-import java.text.SimpleDateFormat;
-import java.util.Vector;
-
-import static javax.swing.SwingUtilities.invokeLater;
+import java.util.List;
 
 public class RecordList extends JFrame {
+
     private static final long serialVersionUID = 4063485659525045767L;
-    DataBase data = new DataBase();
-    public JPanel jPanel = new JPanel();
-    public JButton backToHome = new JButton("返回主界面");
-    static String name = "";
-    static int score = 0;
-    static String time = "";
-    Vector rowData, columnName;
-    JTable recordTable;
-    JScrollPane jsp;
-    Font font = new Font("宋体", Font.BOLD, 12);
+
+    private static final int WINDOW_X = 550;
+
+    private static final int WINDOW_Y = 130;
+
+    private static final int WINDOW_WIDTH = 550;
+
+    private static final int WINDOW_HEIGHT = 650;
+
+    private final JPanel recordPanel = new JPanel(new BorderLayout());
+
+    private final JPanel actionPanel = new JPanel(null);
+
+    private final Font defaultFont = new Font("宋体", Font.BOLD, 12);
 
     public RecordList(String userId, String userName) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        jPanel.setBackground(Color.white);
-        columnName = new Vector();
-        columnName.add("排名");
-        columnName.add("姓名");
-        columnName.add("成绩");
-        columnName.add("完成时间");
-        backToHome.setBounds(350, 530, 150, 50);
-        backToHome.setFont(font);
-        backToHome.setBackground(Color.GREEN);
-        backToHome.setFocusPainted(false);
-        backToHome.setBorderPainted(false);
+        this.recordPanel.setBackground(Color.white);
+        this.actionPanel.setBackground(Color.white);
+        this.actionPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, 90));
+        JButton backHomeButton = SwingFormFactory.with(this.actionPanel, this.defaultFont)
+                .button("返回主界面", 350, 20, 150, 50, Color.GREEN);
+        backHomeButton.setFocusPainted(false);
+        backHomeButton.setBorderPainted(false);
+        SwingActionFactory.with(this).bind(backHomeButton, this::backHome);
+
         try {
             if (userId.equals("")) {
-                int n = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
-                if (n == 0) {
-                    setVisible(false);
-                    new Login();
-                } else {
-                    setVisible(false);
-                    new MainGame();
-                }
-            } else {
-                String sql = "SELECT u.user_name,r.grade,r.create_time " +
-                        "FROM record r " +
-                        "LEFT JOIN USER u on r.user_id = u.user_id " +
-                        "ORDER BY r.grade desc, r.create_time";
-                ResultSet rs = DataBase.stmt.executeQuery(sql);
-                rs.last();
-                int i = 1;
-                if (rs.getRow() != 0) {
-                    rs.beforeFirst();
-                    rowData = new Vector();
-                    while (rs.next()) {
-                        int rank = i++;
-                        name = rs.getString("user_name");
-                        score = Integer.parseInt(rs.getString("grade"));
-                        time = sdf.format(rs.getTimestamp("create_time"));
-                        Vector hang = new Vector();
-                        hang.add(rank);
-                        hang.add(name);
-                        hang.add(score);
-                        hang.add(time);
-                        System.out.println(hang);
-                        rowData.add(hang);
-                    }
-                    recordTable = new JTable(rowData, columnName);
-                    recordTable.setShowGrid(false);
-                    recordTable.setShowHorizontalLines(false);
-                    recordTable.setShowVerticalLines(false);
-                    recordTable.setRowHeight(30);
-                    recordTable.setFont(font);
-                    recordTable.setEnabled(false);
-
-                    DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-                    renderer.setHorizontalAlignment(SwingConstants.CENTER);//文字居中
-                    recordTable.getColumn("排名").setCellRenderer(renderer);
-                    recordTable.getColumn("姓名").setCellRenderer(renderer);
-                    recordTable.getColumn("成绩").setCellRenderer(renderer);
-                    recordTable.getColumn("完成时间").setCellRenderer(renderer);
-
-                    TableColumn firstColumn = recordTable.getColumnModel().getColumn(0);
-                    firstColumn.setPreferredWidth(10);
-                    TableColumn secondColumn = recordTable.getColumnModel().getColumn(1);
-                    secondColumn.setPreferredWidth(15);
-                    TableColumn thirdColumn = recordTable.getColumnModel().getColumn(2);
-                    thirdColumn.setPreferredWidth(10);
-                    TableColumn fourthColumn = recordTable.getColumnModel().getColumn(3);
-                    fourthColumn.setPreferredWidth(50);
-
-                    jsp = new JScrollPane(recordTable);
-                    jPanel.add(jsp);
-
-                    jPanel.add(backToHome);
-                    backToHome.addActionListener(new ButtonListeners(this));
-                    this.add(jPanel);
-                    this.setBounds(550, 130, 550, 650);
-                    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                    this.setVisible(true);
-                    this.setResizable(false);
-                    this.setTitle("打~砖~块");
-                } else {
-                    int n = JOptionPane.showConfirmDialog(null, "榜上无名啊，要不新开一把？", "提示", JOptionPane.YES_NO_OPTION);
-                    if (n == 0) {
-                        invokeLater(() -> {
-                            JBreakout j = null;
-                            j = new JBreakout(userId, userName);
-                            j.setBackground(Color.white);
-                            j.setSize(550, 700);
-                            j.setLocation(550, 80);
-                            j.setVisible(true);
-                            j.setBreakoutComponents();
-                        });
-                    } else {
-                        new MainGame();
-                    }
-                }
+                this.handleAnonymousUser();
+                return;
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "连接数据库时好像遇到了点错误？", "提示", JOptionPane.NO_OPTION);
+
+            Opt.ofEmptyAble(MapperExecutor.query(BreakoutMapper::listRecordRanks))
+                    .ifPresentOrElse(this::showRecordWindow, () -> this.handleEmptyRecord(userId, userName));
+        } catch (Exception exception) {
+            JOptionPane.showMessageDialog(null, "连接数据库时好像遇到了点错误？", "提示", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    private class ButtonListeners implements ActionListener {
-        public RecordList recordList;
+    /**
+     * 展示排行榜窗口
+     *
+     * @param records 排行榜记录
+     */
+    private void showRecordWindow(List<User> records) {
 
-        public ButtonListeners(RecordList recordList) {
-            this.recordList = recordList;
+        JTable recordTable = new JTable(new RecordRankTableModel(records));
+        recordTable.setShowGrid(false);
+        recordTable.setShowHorizontalLines(false);
+        recordTable.setShowVerticalLines(false);
+        recordTable.setRowHeight(34);
+        recordTable.setFont(this.defaultFont);
+        recordTable.setEnabled(false);
+        recordTable.setFillsViewportHeight(true);
+        recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JTableHeader tableHeader = recordTable.getTableHeader();
+        tableHeader.setFont(new Font("宋体", Font.BOLD, 14));
+        tableHeader.setReorderingAllowed(false);
+        tableHeader.setResizingAllowed(false);
+
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+        renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int columnIndex = 0; columnIndex < recordTable.getColumnCount(); columnIndex++) {
+            recordTable.getColumnModel().getColumn(columnIndex).setCellRenderer(renderer);
         }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            recordList.setVisible(false);
-            dispose();
-            Setting.ballLife.setEnabled(true);
-            Setting.brickCount.setEnabled(true);
-            Setting.rate.setEnabled(true);
-            Setting.lifeWarning.setVisible(true);
-            Setting.successCountLabelWarning.setVisible(true);
-            Setting.rateWarning.setVisible(true);
+        this.resizeColumn(recordTable, 0, 60);
+        this.resizeColumn(recordTable, 1, 160);
+        this.resizeColumn(recordTable, 2, 90);
+        this.resizeColumn(recordTable, 3, 210);
+
+        JScrollPane scrollPane = new JScrollPane(recordTable);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(Color.white);
+
+        this.recordPanel.add(scrollPane, BorderLayout.CENTER);
+        this.recordPanel.add(this.actionPanel, BorderLayout.SOUTH);
+
+        this.add(this.recordPanel);
+        this.setBounds(WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setVisible(true);
+        this.setResizable(false);
+        this.setTitle("打~砖~块");
+    }
+
+    /**
+     * 调整表格列宽
+     *
+     * @param recordTable 排行榜表格
+     * @param columnIndex 列下标
+     * @param width       列宽
+     */
+    private void resizeColumn(JTable recordTable, int columnIndex, int width) {
+        recordTable.getColumnModel().getColumn(columnIndex).setPreferredWidth(width);
+    }
+
+    /**
+     * 处理未登录用户
+     */
+    private void handleAnonymousUser() {
+        int result = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            this.setVisible(false);
+            new Login();
+            return;
+        }
+
+        this.setVisible(false);
+        new MainGame();
+    }
+
+    /**
+     * 处理空排行榜
+     *
+     * @param userId   用户id
+     * @param userName 用户名
+     */
+    private void handleEmptyRecord(String userId, String userName) {
+        int result = JOptionPane.showConfirmDialog(null, "榜上无名啊，要不新开一把？", "提示", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            SwingUtilities.invokeLater(() -> {
+                JBreakout breakout = new JBreakout(userId, userName);
+                breakout.setBackground(Color.white);
+                breakout.setSize(550, 700);
+                breakout.setLocation(550, 80);
+                breakout.setVisible(true);
+                breakout.setBreakoutComponents();
+            });
+        } else {
+
             new MainGame();
-
         }
+
     }
+
+    /**
+     * 返回主界面
+     */
+    private void backHome() {
+        this.setVisible(false);
+        this.dispose();
+        new MainGame();
+    }
+
 }

@@ -1,3 +1,7 @@
+import db.BreakoutMapper;
+import db.MapperExecutor;
+import dto.GameSetting;
+
 import javax.swing.*;
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -8,16 +12,15 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class JBreakout extends JFrame implements KeyListener {
-    boolean space = false;
-    boolean music = false;
-    DataBase data = new DataBase();
+    private static final long serialVersionUID = 4655988232932265069L;
+
     int theGreatGrade;
 
     //窗体的大小
@@ -66,7 +69,6 @@ public class JBreakout extends JFrame implements KeyListener {
     String backGroundMusicTmp = "music\\break.wav";
     String happyMusic = "music\\happyMusic.wav";
     static Timer timer;
-    public Integer theBest = 0;
 
     public static void setPeriod(int period) {
         JBreakout.Period = period;
@@ -78,26 +80,6 @@ public class JBreakout extends JFrame implements KeyListener {
 
     public static int getSuccessCount() {
         return successCount;
-    }
-
-    public SettingDTO getSetting(String userId) {
-        PreparedStatement pre;
-        SettingDTO dto = new SettingDTO();
-        try {
-            String checkSql = "select * from setting_record s where s.user_id=? limit 1";
-            pre = data.conn.prepareStatement(checkSql);
-            pre.setString(1, userId);
-            ResultSet res = pre.executeQuery();
-            res.last();
-            dto.setUserId(String.valueOf(res.getString("user_id")))
-                    .setLife(Integer.valueOf(res.getString("ball_life")))
-                    .setPeriod(Integer.valueOf(res.getString("period")))
-                    .setBrickCount(Integer.valueOf(res.getString("brick_count")))
-                    .setSize(Integer.valueOf(res.getString("ball_size")));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return dto;
     }
 
     public JBreakout(String userId, String userName) {
@@ -210,14 +192,9 @@ public class JBreakout extends JFrame implements KeyListener {
             e.printStackTrace();
         }
         timer.schedule(new TimerTask() {
+                           @Override
                            public void run() {
 
-                               Setting.ballLife.setEnabled(false);
-                               Setting.brickCount.setEnabled(false);
-                               Setting.rate.setEnabled(false);
-                               Setting.lifeWarning.setVisible(false);
-                               Setting.successCountLabelWarning.setVisible(false);
-                               Setting.rateWarning.setVisible(false);
                                updateBrickWidth();
                                breakoutComponents.repaint();
                                ball.moveAndBounce(score);
@@ -278,12 +255,6 @@ public class JBreakout extends JFrame implements KeyListener {
 //                                   System.exit(1);
                                    setVisible(false);
                                    timer.cancel();
-                                   Setting.ballLife.setEnabled(true);
-                                   Setting.brickCount.setEnabled(true);
-                                   Setting.rate.setEnabled(true);
-                                   Setting.lifeWarning.setVisible(true);
-                                   Setting.successCountLabelWarning.setVisible(true);
-                                   Setting.rateWarning.setVisible(true);
                                    new MainGame();
                                }
 
@@ -291,19 +262,37 @@ public class JBreakout extends JFrame implements KeyListener {
                                    if (brick.isAlive() && ball.collide(brick.getX(), brick.getY(), brick.getBRICK_WIDTH(), Brick.BRICK_HEIGHT)) {
                                        ball.rebounceY();
                                        brick.setAlive(false);
-                                       if (!brick.isAlive()) brickscount--;
-                                       if (brick.getColor() == Color.red) score += 10;
-                                       if (brick.getColor() == Color.green) score += 8;
-                                       if (brick.getColor() == Color.gray) score += 6;
-                                       if (brick.getColor() == Color.yellow) score += 12;
-                                       if (brick.getColor() == Color.orange) score += 9;
-                                       if (brick.getColor() == Color.pink) score += 11;
-                                       if (brick.getColor() == Color.cyan) score += 7;
+                                       if (!brick.isAlive()) {
+                                           brickscount--;
+                                       }
+                                       if (brick.getColor() == Color.red) {
+                                           score += 10;
+                                       }
+                                       if (brick.getColor() == Color.green) {
+                                           score += 8;
+                                       }
+                                       if (brick.getColor() == Color.gray) {
+                                           score += 6;
+                                       }
+                                       if (brick.getColor() == Color.yellow) {
+                                           score += 12;
+                                       }
+                                       if (brick.getColor() == Color.orange) {
+                                           score += 9;
+                                       }
+                                       if (brick.getColor() == Color.pink) {
+                                           score += 11;
+                                       }
+                                       if (brick.getColor() == Color.cyan) {
+                                           score += 7;
+                                       }
                                    }
                                }
-                               if (pause == false)
+                               if (pause == false) {
                                    status.setText("游戏进行中");
-                               else status.setText("游戏暂停");
+                               } else {
+                                   status.setText("游戏暂停");
+                               }
                            }
 
                        },
@@ -317,20 +306,11 @@ public class JBreakout extends JFrame implements KeyListener {
 
 
     public void Thebest() throws SQLException {
-        String sql = "SELECT * FROM `record` ORDER BY grade desc limit 1";
-        ResultSet rs = data.stmt.executeQuery(sql);
-        rs.last();//遍历一遍结果集，让指针指向结果集的最后一条
-        int rowCount = rs.getRow();//获取结果集条数，记录下来
-        rs.beforeFirst();//让指针回到结果集的最前面
-        if (rowCount != 0) {
-            while (rs.next()) {
-                theGreatGrade = Integer.parseInt(rs.getString("grade"));
-                great.setText(String.valueOf(rs.getString("grade")));
-            }
-        } else {
-            theGreatGrade = 0;
-            great.setText("0");
-        }
+
+        int userHighScore = MapperExecutor.query(BreakoutMapper::fetchCurrentLoggedInUserHighScore);
+
+        theGreatGrade = userHighScore;
+        great.setText(String.valueOf(userHighScore));
 
     }
 
@@ -396,13 +376,12 @@ public class JBreakout extends JFrame implements KeyListener {
         JBreakout.pause = true;
         ball.setVx(3);
         ball.setVy(-2);
-        SettingDTO dto = this.getSetting(userId);
+        GameSetting dto = GameSupporter.loadGameSetting(userId);
         System.out.println(dto);
-        ball.setLife(dto.getLife());
-        JBreakout.setSuccessCount(dto.getBrickCount());
-        JBreakout.setPeriod(dto.getPeriod());
-        ball.setBallRadius(dto.getSize());
-
+        ball.setLife(dto.getBallLife());
+        JBreakout.setSuccessCount(dto.getClearBrickCount());
+        JBreakout.setPeriod(dto.getFps());
+        ball.setBallRadius(dto.getBallSize());
     }
 
     public void setBreakoutComponents() {
@@ -420,6 +399,7 @@ public class JBreakout extends JFrame implements KeyListener {
 
     }
 
+    @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
@@ -444,6 +424,7 @@ public class JBreakout extends JFrame implements KeyListener {
         }
     }
 
+    @Override
     public void keyReleased(KeyEvent e) {
     }
 }

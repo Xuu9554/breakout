@@ -1,4 +1,3 @@
-import support.UserSupporter;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
@@ -28,13 +27,9 @@ public class Login extends JFrame {
         formFactory.label("密码", 30, 60, 180, 30);
         passwordField = formFactory.passwordField(110, 60, 180, 30);
 
-        JButton backHomeButton = new JButton("回到主界面");
-        formFactory.button(backHomeButton, 50, 140, 150, 30, Color.green);
-
-        JButton loginButton = new JButton("确认");
-        formFactory.button(loginButton, 230, 140, 110, 30, Color.green);
-
-        SwingActionFactory.with(this).bind(backHomeButton, this::backHome).bind(loginButton, this::login);
+        SwingActionFactory.with(this)
+                .bind(formFactory.button("确认", 230, 140, 110, 30, Color.GREEN), this::login)
+                .bind(formFactory.button("回到主界面", 50, 140, 150, 30, Color.GREEN), this::backHome);
 
         this.setTitle("用户登录");
         this.add(loginPanel);
@@ -45,7 +40,7 @@ public class Login extends JFrame {
     }
 
     private void login() {
-        UserSupporter.login(this.userIdField.getText(), String.valueOf(this.passwordField.getPassword()));
+        GameSupporter.login(this.userIdField.getText(), String.valueOf(this.passwordField.getPassword()));
         this.setVisible(false);
         new MainGame();
     }

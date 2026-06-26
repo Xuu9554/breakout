@@ -1,123 +1,75 @@
+import cn.hutool.core.util.ObjectUtil;
+import db.MapperExecutor;
+import dto.User;
+import ui.SwingActionFactory;
+import ui.SwingFormFactory;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.UUID;
 
 public class Record extends JFrame {
-    DataBase data = new DataBase();
-    public JPanel jPanel = new JPanel();
-    public JLabel userNameLabel = new JLabel("您的大名：");
-    public JLabel userNameInput = new JLabel("");
-    public JLabel scoreLabel = new JLabel("您的成绩：");
-    public JLabel score = new JLabel(String.valueOf(JBreakout.score));
-    //    public JTextField userNameInput = new JTextField("Visitor");
-    public JButton confirm = new JButton("确定");
-    //public JButton button2=new JButton("取消");
-    Font font = new Font("黑体", Font.BOLD, 16);
-    Font font2 = new Font("黑体", Font.BOLD, 30);
-    String user_id = "";
+
+    private static final long serialVersionUID = 2306704671104481919L;
+
+    private final String userId;
+
+    private final String userName;
+
+    private final int currentScore;
 
     public Record(String title, String userId, String userName) {
-        user_id = userId;
-        jPanel.setLayout(null);
-        jPanel.setBackground(Color.white);
+        this.userId = userId;
+        this.userName = userName;
+        this.currentScore = JBreakout.score;
 
-        userNameLabel.setBounds(30, 25, 180, 30);
-        userNameLabel.setFont(font);
-        jPanel.add(userNameLabel);
+        JPanel recordPanel = new JPanel();
+        recordPanel.setLayout(null);
+        recordPanel.setBackground(Color.WHITE);
 
-        userNameInput.setBounds(170, 25, 150, 30);
-        userNameInput.setFont(font);
-        userNameInput.setText(userName);
-        jPanel.add(userNameInput);
+        Font textFont = new Font("黑体", Font.BOLD, 16);
+        Font scoreFont = new Font("黑体", Font.BOLD, 30);
+        SwingFormFactory formFactory = SwingFormFactory.with(recordPanel, textFont);
 
-        scoreLabel.setBounds(30, 80, 180, 30);
-        scoreLabel.setFont(font);
-        jPanel.add(scoreLabel);
+        formFactory.label("您的大名：", 30, 25, 180, 30);
+        formFactory.label(this.userName, 170, 25, 150, 30).setFont(textFont);
 
-        score.setBounds(170, 80, 180, 30);
-        score.setFont(font2);
-        score.setForeground(Color.red);
-        jPanel.add(score);
+        formFactory.label("您的成绩：", 30, 80, 180, 30);
+        JLabel scoreLabel = formFactory.label(String.valueOf(this.currentScore), 170, 80, 180, 30);
+        scoreLabel.setFont(scoreFont);
+        scoreLabel.setForeground(Color.RED);
 
-        confirm.setBackground(Color.green);
-        confirm.setFont(font);
-        confirm.setBounds(230, 140, 110, 30);
-        confirm.addActionListener(new ButtonListeners(this));
-        jPanel.add(confirm);
+        SwingActionFactory.with(this).bind(formFactory.button("确定", 230, 140, 110, 30, Color.GREEN), this::confirmRecord);
 
-
-        this.add(jPanel);
-
+        this.add(recordPanel);
         this.setTitle(title);
-
-
-        //this.setResizable(false);
         this.setBounds(650, 330, 380, 230);
         this.setVisible(true);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
     }
 
-    public void insertData() throws SQLException {
-        PreparedStatement pre;
-        int realScore = JBreakout.score;
-        String checkSql = "select * from record where record.user_id=? order by record.grade desc limit 1";
-        pre = DataBase.conn.prepareStatement(checkSql);
-        pre.setString(1, user_id);
-        ResultSet res = pre.executeQuery();
-        res.last();
-        int grade = res.getRow() == 0 ? 0 : res.getInt("grade");
-        if (res.getRow() == 0 /*|| realScore < grade*/) {
-            System.out.println("insert!");
-            String recordSql = "INSERT INTO record(record_id,user_id,grade,create_time) values (?,?,?,?)";
-            pre = DataBase.conn.prepareStatement(recordSql);
-            pre.setString(1, UUID.randomUUID().toString().replace("-", ""));//jdbc操作自增id貌似有点麻烦，这里暂时使用uuid
-            pre.setString(2, user_id);
-            pre.setInt(3, realScore);
-            pre.setObject(4, new Date());
-            pre.executeUpdate();
-        } else {
-            if (realScore > grade) {
-                String recordSql = "UPDATE record SET grade=?,create_time=? WHERE user_id=?";
-                pre = DataBase.conn.prepareStatement(recordSql);
-                pre.setInt(1, realScore);
-                pre.setObject(2, new Date());
-                pre.setString(3, user_id);
-                pre.executeUpdate();
-            }
-        }
-
-
+    /**
+     * 确认并保存当前成绩
+     */
+    private void confirmRecord() {
+        this.saveRecord();
+        JOptionPane.showMessageDialog(this, "操作成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
+        this.setVisible(false);
+        new RecordList(this.userId, this.userName);
     }
 
-    private class ButtonListeners implements ActionListener {
-        public Record record;
+    /**
+     * 保存当前最高成绩
+     */
+    private void saveRecord() {
 
-        public ButtonListeners(Record record) {
-            this.record = record;
+        User user;
+        if (ObjectUtil.isNull(user = GameSupporter.fetchUser(userId))) {
+            return;
         }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == confirm) {
-                System.out.println("姓名：" + userNameInput.getText() + "分数：" + JBreakout.score);
-                try {
-                    record.insertData();
-                    JOptionPane.showMessageDialog(null, "操作成功！", "提示", JOptionPane.NO_OPTION);
-                    record.setVisible(false);
-                    new RecordList(user_id, userNameInput.getText());
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-//                System.exit(1);
-            }
-
+        Integer highScore = user.getHighScore();
+        if (ObjectUtil.isNull(highScore) || this.currentScore > highScore) {
+            MapperExecutor.execute(mapper -> mapper.updateHighScore(this.userId, this.currentScore));
         }
     }
 }

@@ -1,6 +1,5 @@
 import cn.hutool.core.util.StrUtil;
 import exception.ServiceAssert;
-import support.UserSupporter;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
@@ -35,13 +34,9 @@ public class Register extends JFrame {
         formFactory.label("确认密码", 30, 95, 180, 30);
         confirmPasswordField = formFactory.passwordField(110, 95, 180, 30);
 
-        JButton clearButton = new JButton("清空");
-        formFactory.button(clearButton, 50, 140, 110, 30, Color.green);
-
-        JButton registerButton = new JButton("确认");
-        formFactory.button(registerButton, 230, 140, 110, 30, Color.green);
-
-        SwingActionFactory.with(this).bind(registerButton, this::register).bind(clearButton, this::clearForm);
+        SwingActionFactory.with(this)
+                .bind(formFactory.button("确认", 230, 140, 110, 30, Color.GREEN), this::register)
+                .bind(formFactory.button("清空", 50, 140, 110, 30, Color.GREEN), this::clearForm);
 
         this.add(registerPanel);
         this.setTitle("用户注册");
@@ -58,7 +53,7 @@ public class Register extends JFrame {
         ServiceAssert.isTrue(!StrUtil.hasBlank(password, confirmPassword), "请正确输入用户密码");
         ServiceAssert.isTrue(password.equals(confirmPassword), "密码不匹配！");
 
-        UserSupporter.register(this.userIdField.getText(), password);
+        GameSupporter.register(this.userIdField.getText(), password);
         JOptionPane.showMessageDialog(Register.this, "注册成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
         this.setVisible(false);
     }

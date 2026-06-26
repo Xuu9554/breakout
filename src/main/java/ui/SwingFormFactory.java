@@ -6,7 +6,6 @@ import java.awt.*;
 /**
  * Swing表单组件工厂
  */
-@SuppressWarnings("UnusedReturnValue")
 public class SwingFormFactory {
 
     private final JPanel panel;
@@ -40,7 +39,7 @@ public class SwingFormFactory {
      * @return {@link JLabel} 标签
      */
     public JLabel label(String text, int x, int y, int width, int height) {
-        return this.add(new JLabel(text), x, y, width, height);
+        return this.component(new JLabel(text), x, y, width, height);
     }
 
     /**
@@ -53,7 +52,7 @@ public class SwingFormFactory {
      * @return {@link JTextField} 文本输入框
      */
     public JTextField textField(int x, int y, int width, int height) {
-        return this.add(new JTextField(), x, y, width, height);
+        return this.component(new JTextField(), x, y, width, height);
     }
 
     /**
@@ -66,29 +65,55 @@ public class SwingFormFactory {
      * @return {@link JPasswordField} 密码输入框
      */
     public JPasswordField passwordField(int x, int y, int width, int height) {
-        JPasswordField passwordField = this.add(new JPasswordField(), x, y, width, height);
+        JPasswordField passwordField = this.component(new JPasswordField(), x, y, width, height);
         passwordField.setEchoChar('*');
         return passwordField;
     }
 
     /**
-     * 添加按钮
+     * 创建普通按钮并加入面板
      *
-     * @param button     按钮
+     * @param buttonName 按钮文案
+     * @param x          横坐标
+     * @param y          纵坐标
+     * @param width      宽度
+     * @param height     高度
+     * @param background 背景色
+     * @return {@link JButton} 按钮
+     */
+    public JButton button(String buttonName, int x, int y, int width, int height, Color background) {
+        return this.button(new JButton(buttonName), x, y, width, height, background);
+    }
+
+    /**
+     * 添加自定义按钮并统一设置表单样式
+     *
+     * @param button     按钮组件
      * @param x          横坐标
      * @param y          纵坐标
      * @param width      宽度
      * @param height     高度
      * @param background 背景色
      * @param <T>        按钮类型
-     * @return {@link T} 按钮
+     * @return T
      */
     public <T extends AbstractButton> T button(T button, int x, int y, int width, int height, Color background) {
         button.setBackground(background);
-        return this.add(button, x, y, width, height);
+        return this.component(button, x, y, width, height);
     }
 
-    private <T extends JComponent> T add(T component, int x, int y, int width, int height) {
+    /**
+     * 添加组件
+     *
+     * @param component 组件
+     * @param x         横坐标
+     * @param y         纵坐标
+     * @param width     宽度
+     * @param height    高度
+     * @param <T>       组件类型
+     * @return {@link T} 组件
+     */
+    public <T extends JComponent> T component(T component, int x, int y, int width, int height) {
         component.setBounds(x, y, width, height);
         component.setFont(this.font);
         this.panel.add(component);

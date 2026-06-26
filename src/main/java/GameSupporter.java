@@ -1,15 +1,15 @@
-package support;
-
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import db.MapperExecutor;
+import dto.GameSetting;
+import dto.User;
 import exception.ServiceAssert;
-import model.User;
 
 import javax.swing.filechooser.FileSystemView;
 
-public class UserSupporter {
+public class GameSupporter {
 
     /**
      * 桌面路径
@@ -21,6 +21,10 @@ public class UserSupporter {
      */
     private static final String CURRENT_USER_PATH = DESKTOP_PATH + "\\.breakout\\current-user.txt";
 
+    public static User fetchUser(String userId) {
+        return MapperExecutor.query(mapper -> mapper.findByUserId(userId));
+    }
+
     /**
      * 用户登录
      *
@@ -31,7 +35,7 @@ public class UserSupporter {
 
         ServiceAssert.isTrue(!StrUtil.hasBlank(userId, password), "请输入账号&密码");
 
-        User user = MapperExecutor.query(mapper -> mapper.findByUserId(userId));
+        User user = fetchUser(userId);
         ServiceAssert.isTrue(!ObjectUtil.isNull(user), "当前用户[{}]不存在", userId);
 
         ServiceAssert.isTrue(password.equals(user.getPassword()), "用户密码不正确");
@@ -43,9 +47,7 @@ public class UserSupporter {
     public static void register(String userId, String password) {
 
         ServiceAssert.isTrue(!StrUtil.hasBlank(userId, password), "请输入账号&密码");
-
-        User user = MapperExecutor.query(mapper -> mapper.findByUserId(userId));
-        ServiceAssert.isTrue(ObjectUtil.isNull(user), "当前用户[{}]已存在", userId);
+        ServiceAssert.isTrue(ObjectUtil.isNull(fetchUser(userId)), "当前用户[{}]已存在", userId);
 
         MapperExecutor.execute(mapper -> mapper.createUser(userId, password));
     }
@@ -61,7 +63,7 @@ public class UserSupporter {
             return null;
         }
 
-        if (ObjectUtil.isNull(MapperExecutor.query(mapper -> mapper.findByUserId(userId)))) {
+        if (ObjectUtil.isNull(fetchUser(userId))) {
             FileUtil.writeUtf8String(CURRENT_USER_PATH, "");
             return "";
         }
@@ -71,6 +73,23 @@ public class UserSupporter {
 
     public static void logout() {
         FileUtil.del(CURRENT_USER_PATH);
+    }
+
+    // ------------------------------------------------------------------------------------------------------------------------
+
+    public static GameSetting loadGameSetting(String userId) {
+
+        return Opt.ofNullable(fetchUser(userId)).map(GameSetting::from).orElse(GameSetting.DEFAULT_GAME_SETTING);
+    }
+
+    /**
+     * 更新用户游戏配置
+     *
+     * @param userId      用户id
+     * @param gameSetting 游戏配置
+     */
+    public static void updateGameSetting(String userId, GameSetting gameSetting) {
+        MapperExecutor.execute(mapper -> mapper.updateUserGameSetting(userId, gameSetting));
     }
 
 }
