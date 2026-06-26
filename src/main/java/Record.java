@@ -27,7 +27,6 @@ public class Record extends JFrame {
         recordPanel.setBackground(Color.WHITE);
 
         Font textFont = new Font("黑体", Font.BOLD, 16);
-        Font scoreFont = new Font("黑体", Font.BOLD, 30);
         SwingFormFactory formFactory = SwingFormFactory.with(recordPanel, textFont);
 
         formFactory.label("您的大名：", 30, 25, 180, 30);
@@ -35,7 +34,7 @@ public class Record extends JFrame {
 
         formFactory.label("您的成绩：", 30, 80, 180, 30);
         JLabel scoreLabel = formFactory.label(String.valueOf(this.currentScore), 170, 80, 180, 30);
-        scoreLabel.setFont(scoreFont);
+        scoreLabel.setFont(new Font("黑体", Font.BOLD, 30));
         scoreLabel.setForeground(Color.RED);
 
         SwingActionFactory.with(this).bind(formFactory.button("确定", 230, 140, 110, 30, Color.GREEN), this::confirmRecord);
