@@ -11,6 +11,7 @@ import java.util.Vector;
 import static javax.swing.SwingUtilities.invokeLater;
 
 public class RecordList extends JFrame {
+    private static final long serialVersionUID = 4063485659525045767L;
     DataBase data = new DataBase();
     public JPanel jPanel = new JPanel();
     public JButton backToHome = new JButton("返回主界面");
@@ -124,41 +125,6 @@ public class RecordList extends JFrame {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "连接数据库时好像遇到了点错误？", "提示", JOptionPane.NO_OPTION);
         }
-//        recordTable = new JTable(rowData, columnName);
-//        recordTable.setShowGrid(false);
-//        recordTable.setShowHorizontalLines(false);
-//        recordTable.setShowVerticalLines(false);
-//        recordTable.setRowHeight(30);
-//        recordTable.setFont(font);
-//        recordTable.setEnabled(false);
-//
-//        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-//        renderer.setHorizontalAlignment(SwingConstants.CENTER);//文字居中
-//        recordTable.getColumn("排名").setCellRenderer(renderer);
-//        recordTable.getColumn("姓名").setCellRenderer(renderer);
-//        recordTable.getColumn("成绩").setCellRenderer(renderer);
-//        recordTable.getColumn("完成时间").setCellRenderer(renderer);
-//
-//        TableColumn firstColumn = recordTable.getColumnModel().getColumn(0);
-//        firstColumn.setPreferredWidth(10);
-//        TableColumn secondColumn = recordTable.getColumnModel().getColumn(1);
-//        secondColumn.setPreferredWidth(15);
-//        TableColumn thirdColumn = recordTable.getColumnModel().getColumn(2);
-//        thirdColumn.setPreferredWidth(10);
-//        TableColumn fourthColumn = recordTable.getColumnModel().getColumn(3);
-//        fourthColumn.setPreferredWidth(50);
-//
-//        jsp = new JScrollPane(recordTable);
-//        jPanel.add(jsp);
-//
-//        jPanel.add(backToHome);
-//        backToHome.addActionListener(new ButtonListeners(this));
-//        this.add(jPanel);
-//        this.setBounds(550, 130, 550, 650);
-//        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        this.setVisible(true);
-//        this.setResizable(false);
-//        this.setTitle("打~砖~块");
     }
 
     private class ButtonListeners implements ActionListener {

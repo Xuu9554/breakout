@@ -1,15 +1,16 @@
+import cn.hutool.core.util.StrUtil;
+import support.UserSupporter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.Calendar;
 
 import static javax.swing.SwingUtilities.invokeLater;
 
 public class MainGame extends JFrame {
+    private static final long serialVersionUID = -4482258986636771110L;
     public JPanel jPanel = new JPanel();
     DataBase data = new DataBase();
     public JButton singleGame = new JButton("单人游戏");
@@ -26,46 +27,42 @@ public class MainGame extends JFrame {
     Font font = new Font("黑体", Font.BOLD, 26);
 
     public MainGame() {
-        try {
-            ArrayList<Map<String, Object>> dataList = this.existUser();
-            if (dataList.size() != 0) {
-                for (Map<String, Object> map : dataList) {
-                    userId = map.containsKey("userId") ? String.valueOf(map.get("userId")) : "";
-                    userName = String.valueOf(map.containsKey("userName") ? String.valueOf(map.get("userName")) : "");
-                    helloWorld.setBounds(0, 470, 550, 60);
-                    helloWorld.setFont(font);
-                    String text = PM_AM() + userName;
-                    helloWorld.setText(text);
-                    jPanel.add(helloWorld);
 
-                    loginOut.setBounds(190, 550, 180, 60);
-                    loginOut.setFont(font);
-                    loginOut.setBackground(Color.red);
-                    loginOut.setFocusPainted(false);
-                    loginOut.setBorderPainted(false);
+        String _userId = UserSupporter.loadCurrentLoggedInUser();
+        if (StrUtil.isBlank(_userId)) {
+            register.setBounds(190, 470, 180, 60);
+            register.setFont(font);
+            login.setBounds(190, 550, 180, 60);
+            login.setFont(font);
+            register.setFocusPainted(false);
+            register.setBorderPainted(false);
+            login.setFocusPainted(false);
+            login.setBorderPainted(false);
+            register.setBackground(Color.white);
+            login.setBackground(Color.white);
+            jPanel.add(register);
+            jPanel.add(login);
+            register.addActionListener(new ButtonListeners(this));
+            login.addActionListener(new ButtonListeners(this));
+        } else {
+            userId = String.valueOf(_userId);
+            userName =_userId;
+            helloWorld.setBounds(0, 470, 550, 60);
+            helloWorld.setFont(font);
+            String text = PM_AM() + userName;
+            helloWorld.setText(text);
+            jPanel.add(helloWorld);
+
+            loginOut.setBounds(190, 550, 180, 60);
+            loginOut.setFont(font);
+            loginOut.setBackground(Color.red);
+            loginOut.setFocusPainted(false);
+            loginOut.setBorderPainted(false);
 //                    loginOut.setBackground(Color.white);
-                    loginOut.addActionListener(new ButtonListeners(this));
-                    jPanel.add(loginOut);
-                }
-            } else {
-                register.setBounds(190, 470, 180, 60);
-                register.setFont(font);
-                login.setBounds(190, 550, 180, 60);
-                login.setFont(font);
-                register.setFocusPainted(false);
-                register.setBorderPainted(false);
-                login.setFocusPainted(false);
-                login.setBorderPainted(false);
-                register.setBackground(Color.white);
-                login.setBackground(Color.white);
-                jPanel.add(register);
-                jPanel.add(login);
-                register.addActionListener(new ButtonListeners(this));
-                login.addActionListener(new ButtonListeners(this));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            loginOut.addActionListener(new ButtonListeners(this));
+            jPanel.add(loginOut);
         }
+
         jPanel.setLayout(null);
         singleGame.setBounds(190, 110, 180, 60);
         singleGame.setFont(font);
@@ -124,46 +121,6 @@ public class MainGame extends JFrame {
         return result + "好，";
     }
 
-    public String userLoginOut() throws SQLException {
-        String result = "";
-        PreparedStatement pre;
-        String recordSql = "UPDATE user_login SET expired_time=? WHERE user_id=? and expired_time is null ";
-        pre = data.conn.prepareStatement(recordSql);
-        pre.setObject(1, new Date());
-        pre.setString(2, userId);
-        int i = pre.executeUpdate();
-        if (i == 0) {
-            result = "退出登录失败！";
-        } else {
-            result = "退出登录成功！";
-        }
-        return result;
-    }
-
-    public ArrayList<Map<String, Object>> existUser() throws SQLException {
-        PreparedStatement pre;
-        String checkSql = "SELECT ul.*,u.user_name " +
-                "FROM user_login ul " +
-                "LEFT JOIN USER u " +
-                "ON ul.user_id = u.user_id " +
-                "WHERE ul.expired_time IS NULL " +
-                "ORDER BY login_time DESC " +
-                "LIMIT 1;";
-        System.out.println(checkSql);
-        pre = data.conn.prepareStatement(checkSql);
-        ResultSet res = pre.executeQuery();
-        res.last();
-        ArrayList<Map<String, Object>> dataList = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
-        if (res.getRow() != 0) {
-
-            map.put("userName", String.valueOf(res.getString("user_name")));
-            map.put("userId", String.valueOf(res.getString("user_id")));
-            dataList.add(map);
-        }
-        return dataList;
-    }
-
     private class ButtonListeners implements ActionListener {
         public MainGame game;
 
@@ -213,19 +170,17 @@ public class MainGame extends JFrame {
                 new Login();
             }
             if (e.getSource() == loginOut) {
-                try {
-                    String s = userLoginOut();
-                    JOptionPane.showMessageDialog(null, s, "提示", JOptionPane.INFORMATION_MESSAGE);
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
+                UserSupporter.logout();
+                JOptionPane.showMessageDialog(null, "退出登录成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
                 setVisible(false);
                 new MainGame();
             }
-            if (e.getSource() == register)
+            if (e.getSource() == register) {
                 new Register();
-            if (e.getSource() == escapeGame)
+            }
+            if (e.getSource() == escapeGame) {
                 System.exit(1);
+            }
             if (e.getSource() == recordList) {
                 if (userId.equals("")) {
                     int n = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);

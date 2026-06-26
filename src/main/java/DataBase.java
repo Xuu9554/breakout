@@ -4,8 +4,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DataBase {
-    static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    static final String DB_URL = "jdbc:mysql://localhost:3306/game?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&&serverTimezone=Asia/Shanghai";
+    static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
+    static final String DB_URL = "jdbc:mysql://localhost:3306/breakout?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&&serverTimezone=Asia/Shanghai";
     static final String USER = "root";
     static final String PASS = "123456";
     static Connection conn = null;

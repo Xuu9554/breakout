@@ -12,14 +12,18 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 @Slf4j
 public class SwingActionExecutor {
 
-    public static void execute(Component component, SwingOperation operation) {
+    public static void execute(SwingOperation operation) {
+        execute(null, operation);
+    }
+
+    public static void execute(Component parent, SwingOperation operation) {
         try {
             operation.execute();
         } catch (ServiceException exception) {
-            JOptionPane.showMessageDialog(component, exception.getMessage(), "提示", WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(parent, exception.getMessage(), "提示", WARNING_MESSAGE);
         } catch (Exception e) {
             log.error("Swing操作执行失败: {}", e.getMessage(), e);
-            JOptionPane.showMessageDialog(component, "程序发生异常, 请稍后重试", "错误", ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(parent, "程序发生异常, 请稍后重试", "错误", ERROR_MESSAGE);
         }
     }
 

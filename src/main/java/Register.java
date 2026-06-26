@@ -1,14 +1,15 @@
+import cn.hutool.core.util.StrUtil;
+import exception.ServiceAssert;
+import support.UserSupporter;
+import ui.SwingActionExecutor;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.UUID;
 
 public class Register extends JFrame implements ActionListener {
+    private static final long serialVersionUID = 6048411083655101761L;
     DataBase data = new DataBase();
     JButton cleanButton = new JButton("清空");
     JButton confirmButton = new JButton("确认");
@@ -69,39 +70,6 @@ public class Register extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
-    public String registerUser(String userName, String passWord) throws SQLException {
-        PreparedStatement pre;
-        String result = "";
-        String checkSql = "select * from user u where u.user_name = ?";
-        pre = DataBase.conn.prepareStatement(checkSql);
-        pre.setString(1, userName);
-        ResultSet res = pre.executeQuery();
-        res.last();
-        if (res.getRow() == 0) {
-            String sql = "INSERT INTO user(user_id,user_name,pass_word,create_time) values (?,?,?,?)";
-            pre = DataBase.conn.prepareStatement(sql);
-            String userId = UUID.randomUUID().toString().replace("-", "");
-            pre.setString(1, userId);
-            pre.setString(2, userName);
-            pre.setString(3, passWord);
-            pre.setObject(4, new Date());
-            pre.executeUpdate();
-            result = "注册成功！";
-            sql = "INSERT INTO setting_record(setting_id, user_id, ball_life, ball_size, period, brick_count) VALUES (?,?,?,?,?,?)";
-            pre = DataBase.conn.prepareStatement(sql);
-            pre.setString(1, UUID.randomUUID().toString().replace("-", ""));
-            pre.setString(2, userId);
-            pre.setInt(3, 1);
-            pre.setInt(4, 10);
-            pre.setInt(5, 60);
-            pre.setInt(6, 0);
-            pre.executeUpdate();
-        } else {
-            result = "该用户名已被注册！";
-        }
-        return result;
-    }
-
     class ButtonListeners implements ActionListener {
         public Register register;
 
@@ -112,25 +80,15 @@ public class Register extends JFrame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == confirmButton) {
-                if (String.valueOf(accountInput.getText()).equals("")
-                        || String.valueOf(passInput.getPassword()).equals("")
-                        || String.valueOf(confirmPassInput.getPassword()).equals("")) {
-                    JOptionPane.showMessageDialog(null, "内容不能为空！", "提示", JOptionPane.NO_OPTION);
-                } else {
-                    if (String.valueOf(passInput.getPassword()).equals(String.valueOf(confirmPassInput.getPassword()))) {
-                        try {
-                            String res = register.registerUser(accountInput.getText(), String.valueOf(confirmPassInput.getPassword()));
-                            JOptionPane.showMessageDialog(null, res, "提示", JOptionPane.NO_OPTION);
-                            if (res.equals("注册成功！")) {
-                                setVisible(false);
-                            }
-                        } catch (SQLException e1) {
-                            e1.printStackTrace();
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(null, "密码不匹配！", "提示", JOptionPane.NO_OPTION);
-                    }
-                }
+
+                String password1 = String.valueOf(passInput.getPassword());
+                String password2 = String.valueOf(confirmPassInput.getPassword());
+                SwingActionExecutor.execute(() -> ServiceAssert.isTrue(!StrUtil.hasBlank(password1, password2), "请正确输入用户密码"));
+
+                SwingActionExecutor.execute(() -> ServiceAssert.isTrue(password1.equals(password2), "密码不匹配！"));
+
+                SwingActionExecutor.execute(() -> UserSupporter.register(accountInput.getText(), password1));
+                setVisible(false);
             }
             if (e.getSource() == cleanButton) {
                 accountInput.setText(null);
@@ -141,6 +99,7 @@ public class Register extends JFrame implements ActionListener {
         }
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         this.setEnabled(false);
         this.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
