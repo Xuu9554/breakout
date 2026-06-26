@@ -1,90 +1,58 @@
 import support.UserSupporter;
-import ui.SwingActionExecutor;
+import ui.SwingActionFactory;
+import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class Login extends JFrame implements ActionListener {
+public class Login extends JFrame {
 
     private static final long serialVersionUID = 1504087619736129919L;
 
-    JButton cleanButton = new JButton("回到主界面");
-    JButton confirmButton = new JButton("确认");
+    private final JTextField userIdField;
 
-    JLabel accountLabel = new JLabel("账号");
-    JLabel passLabel = new JLabel("密码");
-    JTextField accountInput = new JTextField();
-    JPasswordField passInput = new JPasswordField();
-
-    public JPanel loginBoard = new JPanel();
-    Font font = new Font("黑体", Font.BOLD, 15);
+    private final JPasswordField passwordField;
 
     public Login() {
-        loginBoard.setLayout(null);
-        loginBoard.setBackground(Color.white);
 
-        accountLabel.setBounds(30, 25, 180, 30);
-        accountLabel.setFont(font);
-        accountInput.setBounds(110, 25, 180, 30);
-        accountInput.setFont(font);
+        JPanel loginPanel = new JPanel();
+        loginPanel.setLayout(null);
+        loginPanel.setBackground(Color.white);
 
-        passLabel.setBounds(30, 60, 180, 30);
-        passLabel.setFont(font);
-        passInput.setBounds(110, 60, 180, 30);
-        passInput.setFont(font);
-        passInput.setEchoChar('*');
+        Font font = new Font("黑体", Font.BOLD, 15);
+        SwingFormFactory formFactory = SwingFormFactory.with(loginPanel, font);
 
-        cleanButton.addActionListener(new ButtonListeners(this));
-        confirmButton.addActionListener(new ButtonListeners(this));
-        cleanButton.setBackground(Color.green);
-        cleanButton.setFont(font);
-        cleanButton.setBounds(50, 140, 150, 30);
-        confirmButton.setBackground(Color.green);
-        confirmButton.setFont(font);
-        confirmButton.setBounds(230, 140, 110, 30);
-        loginBoard.add(accountLabel);
-        loginBoard.add(accountInput);
-        loginBoard.add(passInput);
-        loginBoard.add(passLabel);
+        formFactory.label("账号", 30, 25, 180, 30);
+        userIdField = formFactory.textField(110, 25, 180, 30);
 
-        loginBoard.add(confirmButton);
-        loginBoard.add(cleanButton);
-        this.add(loginBoard);
+        formFactory.label("密码", 30, 60, 180, 30);
+        passwordField = formFactory.passwordField(110, 60, 180, 30);
+
+        JButton backHomeButton = new JButton("回到主界面");
+        formFactory.button(backHomeButton, 50, 140, 150, 30, Color.green);
+
+        JButton loginButton = new JButton("确认");
+        formFactory.button(loginButton, 230, 140, 110, 30, Color.green);
+
+        SwingActionFactory.with(this).bind(backHomeButton, this::backHome).bind(loginButton, this::login);
+
         this.setTitle("用户登录");
+        this.add(loginPanel);
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setBounds(650, 330, 380, 280);
         this.setVisible(true);
     }
 
-    class ButtonListeners implements ActionListener {
-        public Login login;
-
-        public ButtonListeners(Login login) {
-            this.login = login;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-            if (e.getSource() == confirmButton) {
-                SwingActionExecutor.execute(()->UserSupporter.login(accountInput.getText(), String.valueOf(passInput.getPassword())));
-                setVisible(false);
-                new MainGame();
-            }
-            if (e.getSource() == cleanButton) {
-                setVisible(false);
-                new MainGame();
-            }
-
-        }
+    private void login() {
+        UserSupporter.login(this.userIdField.getText(), String.valueOf(this.passwordField.getPassword()));
+        this.setVisible(false);
+        new MainGame();
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        this.setEnabled(false);
-        this.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
+    private void backHome() {
+        this.setVisible(false);
+        new MainGame();
     }
+
 }

@@ -1,107 +1,72 @@
 import cn.hutool.core.util.StrUtil;
 import exception.ServiceAssert;
 import support.UserSupporter;
-import ui.SwingActionExecutor;
+import ui.SwingActionFactory;
+import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class Register extends JFrame implements ActionListener {
+public class Register extends JFrame {
+
     private static final long serialVersionUID = 6048411083655101761L;
-    DataBase data = new DataBase();
-    JButton cleanButton = new JButton("清空");
-    JButton confirmButton = new JButton("确认");
 
-    JLabel accountLabel = new JLabel("账号");
-    JLabel passLabel = new JLabel("密码");
-    JLabel confirmPassLabel = new JLabel("密码");
-    JTextField accountInput = new JTextField();
-    JPasswordField passInput = new JPasswordField();
-    JPasswordField confirmPassInput = new JPasswordField();
+    private final JTextField userIdField;
 
-    public JPanel registerBoard = new JPanel();
-    Font font = new Font("黑体", Font.BOLD, 15);
+    private final JPasswordField passwordField;
+
+    private final JPasswordField confirmPasswordField;
 
     public Register() {
-        registerBoard.setLayout(null);
-        registerBoard.setBackground(Color.white);
 
-        accountLabel.setBounds(30, 25, 180, 30);
-        accountLabel.setFont(font);
-        accountInput.setBounds(110, 25, 180, 30);
-        accountInput.setFont(font);
+        JPanel registerPanel = new JPanel();
+        registerPanel.setLayout(null);
+        registerPanel.setBackground(Color.white);
 
-        passLabel.setBounds(30, 60, 180, 30);
-        passLabel.setFont(font);
-        passInput.setBounds(110, 60, 180, 30);
-        passInput.setFont(font);
-        passInput.setEchoChar('*');
+        Font font = new Font("黑体", Font.BOLD, 15);
+        SwingFormFactory formFactory = SwingFormFactory.with(registerPanel, font);
 
-        confirmPassLabel.setBounds(30, 95, 180, 30);
-        confirmPassLabel.setFont(font);
-        confirmPassInput.setBounds(110, 95, 180, 30);
-        confirmPassInput.setFont(font);
-        passInput.setEchoChar('*');
-        confirmPassInput.setEchoChar('*');
+        formFactory.label("账号", 30, 25, 180, 30);
+        userIdField = formFactory.textField(110, 25, 180, 30);
 
-        registerBoard.add(accountLabel);
-        registerBoard.add(accountInput);
-        registerBoard.add(passLabel);
-        registerBoard.add(passInput);
-        registerBoard.add(confirmPassLabel);
-        registerBoard.add(confirmPassInput);
+        formFactory.label("密码", 30, 60, 180, 30);
+        passwordField = formFactory.passwordField(110, 60, 180, 30);
 
-        cleanButton.addActionListener(new ButtonListeners(this));
-        confirmButton.addActionListener(new ButtonListeners(this));
-        cleanButton.setBackground(Color.green);
-        cleanButton.setFont(font);
-        cleanButton.setBounds(50, 140, 110, 30);
-        confirmButton.setBackground(Color.green);
-        confirmButton.setFont(font);
-        confirmButton.setBounds(230, 140, 110, 30);
-        registerBoard.add(confirmButton);
-        registerBoard.add(cleanButton);
-        this.add(registerBoard);
+        formFactory.label("确认密码", 30, 95, 180, 30);
+        confirmPasswordField = formFactory.passwordField(110, 95, 180, 30);
+
+        JButton clearButton = new JButton("清空");
+        formFactory.button(clearButton, 50, 140, 110, 30, Color.green);
+
+        JButton registerButton = new JButton("确认");
+        formFactory.button(registerButton, 230, 140, 110, 30, Color.green);
+
+        SwingActionFactory.with(this).bind(registerButton, this::register).bind(clearButton, this::clearForm);
+
+        this.add(registerPanel);
         this.setTitle("用户注册");
         this.setResizable(false);
         this.setBounds(650, 330, 380, 280);
         this.setVisible(true);
     }
 
-    class ButtonListeners implements ActionListener {
-        public Register register;
+    private void register() {
 
-        public ButtonListeners(Register register) {
-            this.register = register;
-        }
+        String password = String.valueOf(this.passwordField.getPassword());
+        String confirmPassword = String.valueOf(this.confirmPasswordField.getPassword());
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == confirmButton) {
+        ServiceAssert.isTrue(!StrUtil.hasBlank(password, confirmPassword), "请正确输入用户密码");
+        ServiceAssert.isTrue(password.equals(confirmPassword), "密码不匹配！");
 
-                String password1 = String.valueOf(passInput.getPassword());
-                String password2 = String.valueOf(confirmPassInput.getPassword());
-                SwingActionExecutor.execute(() -> ServiceAssert.isTrue(!StrUtil.hasBlank(password1, password2), "请正确输入用户密码"));
-
-                SwingActionExecutor.execute(() -> ServiceAssert.isTrue(password1.equals(password2), "密码不匹配！"));
-
-                SwingActionExecutor.execute(() -> UserSupporter.register(accountInput.getText(), password1));
-                setVisible(false);
-            }
-            if (e.getSource() == cleanButton) {
-                accountInput.setText(null);
-                passInput.setText(null);
-                confirmPassInput.setText(null);
-            }
-
-        }
+        UserSupporter.register(this.userIdField.getText(), password);
+        JOptionPane.showMessageDialog(Register.this, "注册成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
+        this.setVisible(false);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        this.setEnabled(false);
-        this.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
+    private void clearForm() {
+        this.userIdField.setText(null);
+        this.passwordField.setText(null);
+        this.confirmPasswordField.setText(null);
     }
+
 }
