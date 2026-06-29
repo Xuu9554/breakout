@@ -1,4 +1,5 @@
 import cn.hutool.core.lang.Opt;
+import cn.hutool.core.util.ObjectUtil;
 import db.BreakoutMapper;
 import db.MapperExecutor;
 import dto.RecordRankTableModel;
@@ -28,29 +29,25 @@ public class RecordList extends JFrame {
 
     private final JPanel actionPanel = new JPanel(null);
 
-    private final Font defaultFont = new Font("宋体", Font.BOLD, 12);
+    private final static Font DEFAULT_FONT = new Font("宋体", Font.BOLD, 12);
 
-    public RecordList(String userId, String userName) {
-        this.recordPanel.setBackground(Color.white);
-        this.actionPanel.setBackground(Color.white);
+    public RecordList() {
+        this.recordPanel.setBackground(Color.WHITE);
+        this.actionPanel.setBackground(Color.WHITE);
         this.actionPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, 90));
-        JButton backHomeButton = SwingFormFactory.with(this.actionPanel, this.defaultFont)
+        JButton backHomeButton = SwingFormFactory.with(this.actionPanel, DEFAULT_FONT)
                 .button("返回主界面", 350, 20, 150, 50, Color.GREEN);
         backHomeButton.setFocusPainted(false);
         backHomeButton.setBorderPainted(false);
         SwingActionFactory.with(this).bind(backHomeButton, this::backHome);
 
-        try {
-            if (userId.equals("")) {
-                this.handleAnonymousUser();
-                return;
-            }
-
+        if (ObjectUtil.isNull(GameSupporter.loadCurrentLoggedInUserId())) {
+            this.handleAnonymousUser();
+        } else {
             Opt.ofEmptyAble(MapperExecutor.query(BreakoutMapper::listRecordRanks))
-                    .ifPresentOrElse(this::showRecordWindow, () -> this.handleEmptyRecord(userId, userName));
-        } catch (Exception exception) {
-            JOptionPane.showMessageDialog(null, "连接数据库时好像遇到了点错误？", "提示", JOptionPane.INFORMATION_MESSAGE);
+                    .ifPresentOrElse(this::showRecordWindow, this::handleEmptyRecord);
         }
+
     }
 
     /**
@@ -65,7 +62,7 @@ public class RecordList extends JFrame {
         recordTable.setShowHorizontalLines(false);
         recordTable.setShowVerticalLines(false);
         recordTable.setRowHeight(34);
-        recordTable.setFont(this.defaultFont);
+        recordTable.setFont(DEFAULT_FONT);
         recordTable.setEnabled(false);
         recordTable.setFillsViewportHeight(true);
         recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -129,21 +126,11 @@ public class RecordList extends JFrame {
 
     /**
      * 处理空排行榜
-     *
-     * @param userId   用户id
-     * @param userName 用户名
      */
-    private void handleEmptyRecord(String userId, String userName) {
+    private void handleEmptyRecord() {
         int result = JOptionPane.showConfirmDialog(null, "榜上无名啊，要不新开一把？", "提示", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
-            SwingUtilities.invokeLater(() -> {
-                JBreakout breakout = new JBreakout(userId, userName);
-                breakout.setBackground(Color.white);
-                breakout.setSize(550, 700);
-                breakout.setLocation(550, 80);
-                breakout.setVisible(true);
-                breakout.setBreakoutComponents();
-            });
+            SwingUtilities.invokeLater(() -> JBreakout.open(this));
         } else {
 
             new MainGame();

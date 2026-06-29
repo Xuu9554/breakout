@@ -21,43 +21,36 @@ public class Setting extends JFrame {
 
     private final JTextField clearBrickCount = new JTextField();
 
-    public Setting(String userId) {
+    public Setting() {
 
         JPanel settingPanel = new JPanel();
         settingPanel.setLayout(null);
         settingPanel.setBackground(Color.WHITE);
 
         SwingFormFactory formFactory = SwingFormFactory.with(settingPanel, new Font("黑体", Font.BOLD, 15));
-        GameSetting gameSetting = GameSupporter.loadGameSetting(userId);
+        GameSetting gameSetting = GameSupporter.loadCurrentUserGameSetting();
 
         formFactory.label("小球生命", 30, 25, 180, 30);
         formFactory.component(this.ballLife, 110, 25, 50, 30);
         this.ballLife.setText(String.valueOf(gameSetting.getBallLife()));
-        JLabel lifeWarning = new JLabel("小球生命至少为一次");
-        formFactory.component(lifeWarning, 170, 25, 180, 30);
-        lifeWarning.setForeground(Color.RED);
+        formFactory.label("小球生命至少为一次", 170, 25, 180, 30, Color.RED);
 
         formFactory.label("小球大小", 30, 60, 180, 30);
         formFactory.component(this.ballSize, 110, 60, 50, 30);
         this.ballSize.setText(String.valueOf(gameSetting.getBallSize()));
-        JLabel ballSizeWarning = formFactory.label("建议输入8-18之间的整数", 170, 60, 180, 30);
-        ballSizeWarning.setForeground(Color.RED);
+        formFactory.label("建议输入8-18之间的整数", 170, 60, 180, 30, Color.RED);
 
         formFactory.label("刷新频率", 30, 95, 180, 30);
         formFactory.component(this.fps, 110, 95, 50, 30);
         this.fps.setText(String.valueOf(gameSetting.getFps()));
-        JLabel rateWarning = new JLabel("建议刷新率在60-80之间");
-        formFactory.component(rateWarning, 170, 95, 180, 30);
-        rateWarning.setForeground(Color.RED);
+        formFactory.label("建议刷新率在60-80之间", 170, 95, 180, 30, Color.RED);
 
         formFactory.label("通关块数", 30, 130, 180, 30);
         formFactory.component(this.clearBrickCount, 110, 130, 50, 30);
         this.clearBrickCount.setText(String.valueOf(gameSetting.getClearBrickCount()));
-        JLabel successCountLabelWarning = new JLabel("建议输入0-99之间的整数");
-        formFactory.component(successCountLabelWarning, 170, 130, 180, 30);
-        successCountLabelWarning.setForeground(Color.RED);
+        formFactory.label("建议输入0-99之间的整数", 170, 130, 180, 30, Color.RED);
 
-        SwingActionFactory.with(this).bind(formFactory.button("Apply", 230, 180, 110, 30, Color.GREEN), () -> this.applySetting(userId));
+        SwingActionFactory.with(this).bind(formFactory.button("Apply", 230, 180, 110, 30, Color.GREEN), this::applySetting);
 
         this.add(settingPanel);
         this.setTitle("Game Setting");
@@ -69,7 +62,7 @@ public class Setting extends JFrame {
     /**
      * 保存用户游戏配置
      */
-    private void applySetting(String userId) {
+    private void applySetting() {
 
         int realBallLife = this.readUnsignedInteger(this.ballLife, "小球生命不合法");
         int realBallSize = this.readUnsignedInteger(this.ballSize, "小球大小不合法");
@@ -79,7 +72,7 @@ public class Setting extends JFrame {
         GameSetting gameSetting = GameSetting.of(Math.min(realFps, MAX_FPS), Math.max(realBallLife, MIN_BALL_LIFE),
                 clampValue(realBallSize, MIN_BALL_SIZE, MAX_BALL_SIZE), clampValue(realClearBrickCount, MIN_CLEAR_BRICK_COUNT, MAX_CLEAR_BRICK_COUNT));
 
-        GameSupporter.updateGameSetting(userId, gameSetting);
+        GameSupporter.updateCurrentUserGameSetting(gameSetting);
 
         String message = StrUtil.format(
                 "修改参数成功~下局生效！\n生命: {}\n小球大小: {}\n刷新频率: {}\n通关块数: {}", realBallLife, realBallSize, realFps, realClearBrickCount);

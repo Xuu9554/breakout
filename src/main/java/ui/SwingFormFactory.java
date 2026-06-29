@@ -1,5 +1,7 @@
 package ui;
 
+import cn.hutool.core.lang.Opt;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -39,7 +41,24 @@ public class SwingFormFactory {
      * @return {@link JLabel} 标签
      */
     public JLabel label(String text, int x, int y, int width, int height) {
-        return this.component(new JLabel(text), x, y, width, height);
+        return this.label(text, x, y, width, height, null);
+    }
+
+    /**
+     * 创建指定前景色的标签
+     *
+     * @param text       标签文本
+     * @param x          横坐标
+     * @param y          纵坐标
+     * @param width      宽度
+     * @param height     高度
+     * @param foreground 前景色
+     * @return {@link JLabel} 标签
+     */
+    public JLabel label(String text, int x, int y, int width, int height, Color foreground) {
+        JLabel label = this.component(new JLabel(text), x, y, width, height);
+        Opt.ofNullable(foreground).ifPresent(label::setForeground);
+        return label;
     }
 
     /**

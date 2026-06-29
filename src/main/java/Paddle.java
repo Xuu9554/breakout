@@ -1,77 +1,82 @@
+import lombok.Data;
+
 import java.awt.*;
+import java.io.Serializable;
 
-public class Paddle {
-    //public static final int PADDLE_WIDTH=60;
-    //public static final int PADDLE_HEIGHT=10;
-    private static final int PADDLE_Y_OFFSET = 180;
-    public static final int drawPADDLE_WIDTH = 90;
-    public static final int drawPADDLE_HEIGHT = 20;
+@Data
+public class Paddle implements Serializable {
+
+    private static final long serialVersionUID = 7510495643437996449L;
+
+    private int speed = 30;
+
     private int x = 0;
+
     private int y = 0;
-    public static int speed = 30;
 
-    public int getX() {
-        return x;
-    }
+    // ------------------------------------------------------------------------------------------------------------------------
 
-    public void setX(int x) {
-        this.x = x;
-    }
+    private static final int PADDLE_Y_OFFSET = 180;
 
-    public int getY() {
-        return y;
-    }
+    private static final int DRAW_PADDLE_WIDTH = 90;
 
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public static int getSpeed() {
-        return speed;
-    }
-
-    public static void setSpeed(int speed) {
-        Paddle.speed = speed;
-    }
+    private static final int DRAW_PADDLE_HEIGHT = 20;
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        g2.drawRect(x, y, drawPADDLE_WIDTH, drawPADDLE_HEIGHT);
+        g2.drawRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
         g2.setColor(Color.BLACK);
-        g2.fillRect(x, y, drawPADDLE_WIDTH, drawPADDLE_HEIGHT);
+        g2.fillRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
     }
 
-    public void setStartPosition() {
-        x = (JBreakout.Width - drawPADDLE_WIDTH) / 2;
-        y = JBreakout.Height - PADDLE_Y_OFFSET;
+    /**
+     * 根据游戏面板尺寸设置挡板初始位置
+     *
+     * @param boardWidth  游戏面板宽度
+     * @param boardHeight 游戏面板高度
+     */
+    public void setStartPosition(int boardWidth, int boardHeight) {
+        this.x = (boardWidth - DRAW_PADDLE_WIDTH) / 2;
+        this.y = boardHeight - PADDLE_Y_OFFSET;
     }
 
     public int getPaddleWidth() {
-        return drawPADDLE_WIDTH;
+        return DRAW_PADDLE_WIDTH;
     }
 
     public int getPaddleHeight() {
-        return drawPADDLE_HEIGHT;
+        return DRAW_PADDLE_HEIGHT;
     }
 
-    public void moveRight() {
-        if (JBreakout.pause == false) {
-            if ((x + speed) <= JBreakout.Width - drawPADDLE_WIDTH)
-                x += speed;
-            else
-                x = JBreakout.Width - drawPADDLE_WIDTH;
+    /**
+     * 按当前游戏状态向右移动挡板
+     *
+     * @param boardWidth 游戏面板宽度
+     * @param pause      是否暂停
+     */
+    public void moveRight(int boardWidth, boolean pause) {
+        if (!pause) {
+            if ((this.x + this.speed) <= boardWidth - DRAW_PADDLE_WIDTH) {
+                this.x += this.speed;
+            } else {
+                this.x = boardWidth - DRAW_PADDLE_WIDTH;
+            }
         }
     }
 
-    public void moveLeft() {
-        if (JBreakout.pause == false) {
-            if (x >= speed)
-                x -= speed;
-            else
-                x = 0;
+    /**
+     * 按当前游戏状态向左移动挡板
+     *
+     * @param pause 是否暂停
+     */
+    public void moveLeft(boolean pause) {
+        if (!pause) {
+            if (this.x >= this.speed) {
+                this.x -= this.speed;
+            } else {
+                this.x = 0;
+            }
         }
-
     }
-
 
 }

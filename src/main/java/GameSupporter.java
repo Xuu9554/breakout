@@ -6,6 +6,7 @@ import db.MapperExecutor;
 import dto.GameSetting;
 import dto.User;
 import exception.ServiceAssert;
+import exception.ServiceException;
 
 import javax.swing.filechooser.FileSystemView;
 
@@ -52,23 +53,17 @@ public class GameSupporter {
         MapperExecutor.execute(mapper -> mapper.createUser(userId, password));
     }
 
-    public static String loadCurrentLoggedInUser() {
+    public static Opt<String> loadCurrentLoggedInUserId() {
+        return Opt.ofBlankAble(CURRENT_USER_PATH).map(FileUtil::readUtf8String);
+    }
 
-        if (!FileUtil.exist(CURRENT_USER_PATH)) {
-            return null;
-        }
-
-        String userId;
-        if (StrUtil.isBlank(userId = FileUtil.readUtf8String(CURRENT_USER_PATH))) {
-            return null;
-        }
-
-        if (ObjectUtil.isNull(fetchUser(userId))) {
-            FileUtil.writeUtf8String(CURRENT_USER_PATH, "");
-            return "";
-        }
-
-        return userId;
+    /**
+     * 获取当前登录用户
+     *
+     * @return {@link User} 当前登录用户
+     */
+    public static User requireCurrentUser() {
+        return loadCurrentLoggedInUserId().map(GameSupporter::fetchUser).orElseThrow(ServiceException::new, "请先登录！");
     }
 
     public static void logout() {
@@ -77,19 +72,22 @@ public class GameSupporter {
 
     // ------------------------------------------------------------------------------------------------------------------------
 
-    public static GameSetting loadGameSetting(String userId) {
-
-        return Opt.ofNullable(fetchUser(userId)).map(GameSetting::from).orElse(GameSetting.DEFAULT_GAME_SETTING);
+    /**
+     * 加载当前登录用户的游戏配置
+     *
+     * @return {@link GameSetting} 游戏配置
+     */
+    public static GameSetting loadCurrentUserGameSetting() {
+        return GameSetting.from(requireCurrentUser());
     }
 
     /**
-     * 更新用户游戏配置
+     * 更新当前登录用户的游戏配置
      *
-     * @param userId      用户id
      * @param gameSetting 游戏配置
      */
-    public static void updateGameSetting(String userId, GameSetting gameSetting) {
-        MapperExecutor.execute(mapper -> mapper.updateUserGameSetting(userId, gameSetting));
+    public static void updateCurrentUserGameSetting(GameSetting gameSetting) {
+        MapperExecutor.execute(mapper -> mapper.updateUserGameSetting(requireCurrentUser().getUserId(), gameSetting));
     }
 
 }

@@ -1,204 +1,180 @@
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.lang.Opt;
+import ui.SwingActionFactory;
+import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Calendar;
-
-import static javax.swing.SwingUtilities.invokeLater;
+import java.time.LocalTime;
 
 public class MainGame extends JFrame {
-    private static final long serialVersionUID = -4482258986636771110L;
-    public JPanel jPanel = new JPanel();
-    public JButton singleGame = new JButton("单人游戏");
-    public JButton gameSetting = new JButton("游戏设置");
-    public JButton escapeGame = new JButton("退出游戏");
-    public JButton recordList = new JButton("英雄榜");
-    public JButton register = new JButton("注册");
-    public JButton login = new JButton("登陆");
-    public JButton loginOut = new JButton("退出登录");
-    public String userId = "";
-    public String userName = "";
-    public JLabel helloWorld = new JLabel("", JLabel.CENTER);
 
-    Font font = new Font("黑体", Font.BOLD, 26);
+    private static final long serialVersionUID = -4482258986636771110L;
+
+    private static final int WINDOW_X = 550;
+
+    private static final int WINDOW_Y = 80;
+
+    private static final int WINDOW_WIDTH = 550;
+
+    private static final int WINDOW_HEIGHT = 700;
+
+    private static final int MENU_BUTTON_X = 190;
+
+    private static final int MENU_BUTTON_WIDTH = 180;
+
+    private static final int MENU_BUTTON_HEIGHT = 60;
 
     public MainGame() {
 
-        String _userId = GameSupporter.loadCurrentLoggedInUser();
-        if (StrUtil.isBlank(_userId)) {
-            register.setBounds(190, 470, 180, 60);
-            register.setFont(font);
-            login.setBounds(190, 550, 180, 60);
-            login.setFont(font);
-            register.setFocusPainted(false);
-            register.setBorderPainted(false);
-            login.setFocusPainted(false);
-            login.setBorderPainted(false);
-            register.setBackground(Color.white);
-            login.setBackground(Color.white);
-            jPanel.add(register);
-            jPanel.add(login);
-            register.addActionListener(new ButtonListeners(this));
-            login.addActionListener(new ButtonListeners(this));
-        } else {
-            userId = String.valueOf(_userId);
-            userName =_userId;
-            helloWorld.setBounds(0, 470, 550, 60);
-            helloWorld.setFont(font);
-            String text = PM_AM() + userName;
-            helloWorld.setText(text);
-            jPanel.add(helloWorld);
+        JPanel mainPanel = new JPanel(null);
+        mainPanel.setBackground(Color.WHITE);
 
-            loginOut.setBounds(190, 550, 180, 60);
-            loginOut.setFont(font);
-            loginOut.setBackground(Color.red);
-            loginOut.setFocusPainted(false);
-            loginOut.setBorderPainted(false);
-//                    loginOut.setBackground(Color.white);
-            loginOut.addActionListener(new ButtonListeners(this));
-            jPanel.add(loginOut);
+        SwingFormFactory formFactory = SwingFormFactory.with(mainPanel, new Font("黑体", Font.BOLD, 26));
+        SwingActionFactory actionFactory = SwingActionFactory.with(this);
+
+        Opt<String> currentUserId = GameSupporter.loadCurrentLoggedInUserId();
+        if (currentUserId.isPresent()) {
+            formFactory.label(this.buildGreetingPrefix() + currentUserId.get(), 0, 470, WINDOW_WIDTH, MENU_BUTTON_HEIGHT).setHorizontalAlignment(JLabel.CENTER);
+            actionFactory.bind(this.menuButton(formFactory, "退出登录", 550, Color.RED), this::logout);
+        } else {
+            actionFactory.bind(this.menuButton(formFactory, "注册", 470, Color.WHITE), Register::new)
+                    .bind(this.menuButton(formFactory, "登陆", 550, Color.WHITE), this::openLogin);
         }
 
-        jPanel.setLayout(null);
-        singleGame.setBounds(190, 110, 180, 60);
-        singleGame.setFont(font);
-        gameSetting.setBounds(190, 190, 180, 60);
-        gameSetting.setFont(font);
-        recordList.setBounds(190, 270, 180, 60);
-        recordList.setFont(font);
-        escapeGame.setBounds(190, 350, 180, 60);
-        escapeGame.setFont(font);
-        singleGame.setFocusPainted(false);
-        singleGame.setBorderPainted(false);
-        gameSetting.setFocusPainted(false);
-        gameSetting.setBorderPainted(false);
-        escapeGame.setFocusPainted(false);
-        escapeGame.setBorderPainted(false);
-        recordList.setFocusPainted(false);
-        recordList.setBorderPainted(false);
-        singleGame.setBackground(Color.white);
-        gameSetting.setBackground(Color.white);
-        escapeGame.setBackground(Color.white);
-        recordList.setBackground(Color.white);
-        jPanel.add(singleGame);
-        jPanel.add(gameSetting);
-        jPanel.add(escapeGame);
-        jPanel.add(recordList);
-        jPanel.setBackground(Color.white);
-        this.add(jPanel);
-        this.setBackground(Color.white);
-        this.setBounds(550, 80, 550, 700);
+        actionFactory
+                .bind(this.menuButton(formFactory, "单人游戏", 110, Color.WHITE), this::startSingleGame)
+                .bind(this.menuButton(formFactory, "游戏设置", 190, Color.WHITE), this::openGameSetting)
+                .bind(this.menuButton(formFactory, "英雄榜", 270, Color.WHITE), this::openRecordList)
+                .bind(this.menuButton(formFactory, "退出游戏", 350, Color.WHITE), () -> System.exit(1));
+
+        this.add(mainPanel);
+        this.setBackground(Color.WHITE);
+        this.setBounds(WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
         this.setResizable(false);
         this.setTitle("打~砖~块");
-        singleGame.addActionListener(new ButtonListeners(this));
-        gameSetting.addActionListener(new ButtonListeners(this));
-        escapeGame.addActionListener(new ButtonListeners(this));
-        recordList.addActionListener(new ButtonListeners(this));
+    }
+
+    /**
+     * 创建主菜单按钮并应用统一外观
+     *
+     * @param formFactory 表单组件工厂
+     * @param buttonName  按钮文案
+     * @param y           纵坐标
+     * @param background  背景色
+     * @return {@link JButton} 主菜单按钮
+     */
+    private JButton menuButton(SwingFormFactory formFactory, String buttonName, int y, Color background) {
+        JButton button = formFactory.button(buttonName, MENU_BUTTON_X, y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT, background);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        return button;
+    }
+
+    /**
+     * 根据当前时间生成首页问候语前缀
+     *
+     * @return {@link String} 问候语前缀
+     */
+    private String buildGreetingPrefix() {
+
+        int hour = LocalTime.now().getHour();
+
+        if (hour < 6) {
+            return "清晨好，";
+        }
+        if (hour < 12) {
+            return "上午好，";
+        }
+        if (hour < 14) {
+            return "中午好，";
+        }
+        if (hour < 18) {
+            return "下午好，";
+        }
+        return "晚上好，";
+    }
+
+    /**
+     * 进入单人游戏
+     */
+    private void startSingleGame() {
+
+        if (this.hasLoggedIn()) {
+            this.setVisible(false);
+            this.dispose();
+            SwingUtilities.invokeLater(() -> JBreakout.open(this));
+        } else {
+            this.openLoginIfConfirmed();
+        }
 
     }
 
-    public String PM_AM() {
-        String result = "";
-        Calendar now = Calendar.getInstance();
-        int hour = now.get(Calendar.HOUR_OF_DAY);
-        if (hour >= 0 && hour < 6) {
-            result = "清晨";
-        } else if (hour >= 6 && hour < 12) {
-            result = "上午";
-        } else if (hour >= 12 && hour < 14) {
-            result = "中午";
-        } else if (hour >= 14 && hour < 18) {
-            result = "下午";
-        } else if (hour >= 18 && hour < 24) {
-            result = "晚上";
+    /**
+     * 打开游戏设置窗口
+     */
+    private void openGameSetting() {
+        if (this.hasLoggedIn()) {
+            new Setting();
+        } else {
+            this.openLoginIfConfirmed();
         }
-        return result + "好，";
     }
 
-    private class ButtonListeners implements ActionListener {
-        public MainGame game;
+    /**
+     * 打开登录窗口
+     */
+    private void openLogin() {
+        this.setVisible(false);
+        new Login();
+    }
 
-        public ButtonListeners(MainGame game) {
-            this.game = game;
+    /**
+     * 清理当前登录人并回到首页
+     */
+    private void logout() {
+        GameSupporter.logout();
+        JOptionPane.showMessageDialog(this, "退出登录成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
+        this.setVisible(false);
+        new MainGame();
+    }
+
+    /**
+     * 打开排行榜窗口
+     */
+    private void openRecordList() {
+
+        if (this.hasLoggedIn()) {
+            new RecordList();
+            this.setVisible(false);
+        } else {
+            this.openLoginIfConfirmed();
         }
+    }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == singleGame) {
-                if (userId.equals("")) {
-                    int n = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
-                    if (n == 0) {
-                        setVisible(false);
-                        new Login();
-                    } else {
-//                        setVisible(false);
-//                        new MainGame();
-                    }
-                } else {
-                    setVisible(false);
-                    dispose();
-                    invokeLater(() -> {
-                        JBreakout j = null;
-                        j = new JBreakout(userId, userName);
-                        j.setBackground(Color.white);
-                        j.setSize(550, 700);
-                        j.setLocation(550, 80);
-                        j.setVisible(true);
-                        j.setBreakoutComponents();
-                    });
-                }
-            }
-            if (e.getSource() == gameSetting) {
-                if (userId.equals("")) {
-                    int n = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
-                    if (n == 0) {
-                        setVisible(false);
-                        new Login();
-                    }
-                } else {
-                    new Setting(userId);
-                }
-            }
-            if (e.getSource() == login) {
-                setVisible(false);
-                new Login();
-            }
-            if (e.getSource() == loginOut) {
-                GameSupporter.logout();
-                JOptionPane.showMessageDialog(null, "退出登录成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
-                setVisible(false);
-                new MainGame();
-            }
-            if (e.getSource() == register) {
-                new Register();
-            }
-            if (e.getSource() == escapeGame) {
-                System.exit(1);
-            }
-            if (e.getSource() == recordList) {
-                if (userId.equals("")) {
-                    int n = JOptionPane.showConfirmDialog(null, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
-                    if (n == 0) {
-                        setVisible(false);
-                        new Login();
-                    }
-                } else {
-                    new RecordList(userId, userName);
-                    setVisible(false);
-                }
-            }
+    /**
+     * 判断当前是否已有登录用户
+     *
+     * @return boolean 是否已登录
+     */
+    private boolean hasLoggedIn() {
+        return GameSupporter.loadCurrentLoggedInUserId().isPresent();
+    }
+
+    /**
+     * 未登录时询问是否跳转登录
+     */
+    private void openLoginIfConfirmed() {
+        int result = JOptionPane.showConfirmDialog(this, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
+        if (result == JOptionPane.YES_OPTION) {
+            this.setVisible(false);
+            new Login();
         }
     }
 
     public static void main(String[] args) {
-
         new MainGame();
-
     }
-
 
 }

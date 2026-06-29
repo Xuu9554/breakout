@@ -1,87 +1,31 @@
+import lombok.Data;
+
 import java.awt.*;
+import java.io.Serializable;
 
+@Data
+public class Brick implements Serializable {
 
-public class Brick {
-    private static String text = null;
-    /**
-     * Width of a brick
-     **/
-    private int BRICK_WIDTH;
-    /**
-     * Height of a brick
-     **/
-    public static final int BRICK_HEIGHT = 16;
-    //砖块是否存在
-    private boolean isAlive = true;
-    //砖块坐标
-    //private String text=null;
-    private int x, y;
-    private Color color = Color.white;
-    private String colorful;
+    private static final long serialVersionUID = -3703605258219341112L;
 
-    public int getBRICK_WIDTH() {
-        return BRICK_WIDTH;
-    }
+    public static final int HEIGHT = 16;
 
-    public void setBRICK_WIDTH(int BRICK_WIDTH) {
-        this.BRICK_WIDTH = BRICK_WIDTH;
-    }
+    private int width;
 
-    public static int getBrickHeight() {
-        return BRICK_HEIGHT;
-    }
+    private boolean alive = true;
 
-    public boolean isAlive() {
-        return isAlive;
-    }
+    private int x;
 
-    public void setAlive(boolean alive) {
-        isAlive = alive;
-    }
+    private int y;
 
-    public void settext(String text) {
-        this.text = text;
-    }
+    private Color color;
 
-    public static String gettext() {
-        return text;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public Color getColor() {
-        return color;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
-//    public void setColor(String colorful) {
-//        this.colorful = colorful;
-//    }
-
-    //绘图
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        if (isAlive) {
-            g2.setColor(color);
-            g2.fillRect(x, y, BRICK_WIDTH, BRICK_HEIGHT);
+        if (this.alive) {
+            g2.setColor(this.color);
+            g2.fillRect(this.x, this.y, this.width, Brick.HEIGHT);
         }
     }
-
 
 }

@@ -33,19 +33,23 @@ public class GameSetting implements Serializable {
     private int clearBrickCount;
 
     /**
+     * 构造
+     *
+     * @param fps             界面刷新帧率
      * @param ballLife        球的生命值
-     * @param ballSize
-     * @param clearBrickCount
-     * @param fps
-     * @return {@link GameSetting}
+     * @param ballSize        球的大小
+     * @param clearBrickCount 通关所需消除块数
+     * @return {@link GameSetting} 游戏设置
      */
     public static GameSetting of(int fps, int ballLife, int ballSize, int clearBrickCount) {
         return new GameSetting(fps, ballLife, ballSize, clearBrickCount);
     }
 
     /**
-     * @param user
-     * @return {@link GameSetting}
+     * 构造
+     *
+     * @param user 用户信息
+     * @return {@link GameSetting} 游戏设置
      */
     public static GameSetting from(User user) {
         return of(Opt.ofNullable(user.getFps()).orElse(DEFAULT_FPS),
@@ -76,6 +80,7 @@ public class GameSetting implements Serializable {
      */
     private final static int DEFAULT_CLEAR_BRICK_COUNT = 10;
 
-    public final static GameSetting DEFAULT_GAME_SETTING = of(DEFAULT_FPS, DEFAULT_BALL_LIFE, DEFAULT_BALL_SIZE, DEFAULT_CLEAR_BRICK_COUNT);
+    public final static GameSetting DEFAULT_GAME_SETTING =
+            GameSetting.of(DEFAULT_FPS, DEFAULT_BALL_LIFE, DEFAULT_BALL_SIZE, DEFAULT_CLEAR_BRICK_COUNT);
 
 }

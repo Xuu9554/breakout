@@ -1,14 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.List;
 
 public class BreakoutComponents extends JComponent {
-    Paddle paddle;
-    Ball ball;
-    ArrayList<Brick> bricks;
 
-    public BreakoutComponents(Paddle paddle,Ball ball,ArrayList<Brick> bricks){
+    private final Paddle paddle;
 
+    private final Ball ball;
+
+    private final List<Brick> bricks;
+
+    public BreakoutComponents(Paddle paddle, Ball ball, List<Brick> bricks) {
         this.paddle = paddle;
         this.ball = ball;
         this.bricks = bricks;
@@ -16,10 +18,11 @@ public class BreakoutComponents extends JComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        paddle.draw(g);
-        ball.draw(g);
-        for (Brick brick : bricks){
+        this.paddle.draw(g);
+        this.ball.draw(g);
+        for (Brick brick : this.bricks) {
             brick.draw(g);
         }
     }
+
 }
