@@ -8,18 +8,39 @@ public class Ball implements Serializable {
 
     private static final long serialVersionUID = 6615576010331954937L;
 
+    /**
+     * 小球是否存活
+     */
     private boolean alive = true;
 
+    /**
+     * 小球半径
+     */
     private int radius = 10;
 
+    /**
+     * 小球左上角横坐标
+     */
     private int x = 265;
 
+    /**
+     * 小球左上角纵坐标
+     */
     private int y = 460;
 
+    /**
+     * 小球横向速度
+     */
     private double velocityX = 3;
 
+    /**
+     * 小球纵向速度
+     */
     private double velocityY = -2;
 
+    /**
+     * 小球剩余生命
+     */
     private int life = 1;
 
     public void draw(Graphics g) {
@@ -77,26 +98,26 @@ public class Ball implements Serializable {
         }
 
         if (!pause) {
-            if (remainingBrickCount >= 80 && remainingBrickCount <= 100) {
+            if (remainingBrickCount >= BreakoutGameContext.BRICK_COUNT * 0.8 && remainingBrickCount <= BreakoutGameContext.BRICK_COUNT) {
                 this.x += this.velocityX;
                 this.y += this.velocityY;
             }
-            if (remainingBrickCount >= 60 && remainingBrickCount < 80) {
+            if (remainingBrickCount >= BreakoutGameContext.BRICK_COUNT * 0.6 && remainingBrickCount < BreakoutGameContext.BRICK_COUNT * 0.8) {
                 this.x += this.velocityX * 1.2;
                 this.y += this.velocityY * 1.3;
                 paddle.setSpeed(24);
             }
-            if (remainingBrickCount >= 40 && remainingBrickCount < 60) {
+            if (remainingBrickCount >= BreakoutGameContext.BRICK_COUNT * 0.4 && remainingBrickCount < BreakoutGameContext.BRICK_COUNT * 0.6) {
                 this.x += this.velocityX * 1.44;
                 this.y += this.velocityY * 1.69;
                 paddle.setSpeed(18);
             }
-            if (remainingBrickCount >= 20 && remainingBrickCount < 40) {
+            if (remainingBrickCount >= BreakoutGameContext.BRICK_COUNT * 0.2 && remainingBrickCount < BreakoutGameContext.BRICK_COUNT * 0.4) {
                 this.x += this.velocityX * 1.73;
                 this.y += this.velocityY * 2.20;
                 paddle.setSpeed(12);
             }
-            if (remainingBrickCount < 20) {
+            if (remainingBrickCount < BreakoutGameContext.BRICK_COUNT * 0.2) {
                 this.x += this.velocityX * 2.07;
                 this.y += this.velocityY * 2.86;
                 paddle.setSpeed(6);

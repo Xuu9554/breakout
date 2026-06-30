@@ -54,7 +54,7 @@ public class GameSupporter {
     }
 
     public static Opt<String> loadCurrentLoggedInUserId() {
-        return Opt.ofBlankAble(CURRENT_USER_PATH).map(FileUtil::readUtf8String);
+        return Opt.ofBlankAble(CURRENT_USER_PATH).filter(FileUtil::exist).map(FileUtil::readUtf8String);
     }
 
     /**

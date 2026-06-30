@@ -1,29 +1,51 @@
 import cn.hutool.core.util.StrUtil;
 import exception.ServiceAssert;
+import ui.AbstractGameFrame;
+import ui.GameWindowConfig;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class Register extends JFrame {
+import static ui.GameFonts.FORM_TEXT;
+
+public class Register extends AbstractGameFrame {
 
     private static final long serialVersionUID = 6048411083655101761L;
 
-    private final JTextField userIdField;
+    /**
+     * 用户账号输入框
+     */
+    private JTextField userIdField;
 
-    private final JPasswordField passwordField;
+    /**
+     * 用户密码输入框
+     */
+    private JPasswordField passwordField;
 
-    private final JPasswordField confirmPasswordField;
+    /**
+     * 确认密码输入框
+     */
+    private JPasswordField confirmPasswordField;
 
+    /**
+     * 打开用户注册窗口
+     */
     public Register() {
+        this.openWindow(GameWindowConfig.of("用户注册", 650, 330, 380, 280));
+    }
 
-        JPanel registerPanel = new JPanel();
-        registerPanel.setLayout(null);
-        registerPanel.setBackground(Color.white);
+    /**
+     * 构建用户注册表单
+     *
+     * @param panel 当前窗口的根面板
+     */
+    @Override
+    @SuppressWarnings("DuplicatedCode")
+    protected void buildContent(JPanel panel) {
 
-        Font font = new Font("黑体", Font.BOLD, 15);
-        SwingFormFactory formFactory = SwingFormFactory.with(registerPanel, font);
+        SwingFormFactory formFactory = SwingFormFactory.with(panel, FORM_TEXT);
 
         formFactory.label("账号", 30, 25, 180, 30);
         userIdField = formFactory.textField(110, 25, 180, 30);
@@ -37,14 +59,11 @@ public class Register extends JFrame {
         SwingActionFactory.with(this)
                 .bind(formFactory.button("确认", 230, 140, 110, 30, Color.GREEN), this::register)
                 .bind(formFactory.button("清空", 50, 140, 110, 30, Color.GREEN), this::clearForm);
-
-        this.add(registerPanel);
-        this.setTitle("用户注册");
-        this.setResizable(false);
-        this.setBounds(650, 330, 380, 280);
-        this.setVisible(true);
     }
 
+    /**
+     * 校验并创建新用户
+     */
     private void register() {
 
         String password = String.valueOf(this.passwordField.getPassword());
@@ -58,6 +77,9 @@ public class Register extends JFrame {
         this.setVisible(false);
     }
 
+    /**
+     * 清空注册表单输入
+     */
     private void clearForm() {
         this.userIdField.setText(null);
         this.passwordField.setText(null);

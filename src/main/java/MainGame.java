@@ -1,4 +1,6 @@
 import cn.hutool.core.lang.Opt;
+import ui.AbstractGameFrame;
+import ui.GameWindowConfig;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
@@ -6,30 +8,59 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalTime;
 
-public class MainGame extends JFrame {
+import static ui.GameFonts.MAIN_MENU_TEXT;
+
+public class MainGame extends AbstractGameFrame {
 
     private static final long serialVersionUID = -4482258986636771110L;
 
+    /**
+     * 主菜单窗口横坐标
+     */
     private static final int WINDOW_X = 550;
 
+    /**
+     * 主菜单窗口纵坐标
+     */
     private static final int WINDOW_Y = 80;
 
+    /**
+     * 主菜单窗口宽度
+     */
     private static final int WINDOW_WIDTH = 550;
 
+    /**
+     * 主菜单窗口高度
+     */
     private static final int WINDOW_HEIGHT = 700;
 
+    /**
+     * 主菜单按钮横坐标
+     */
     private static final int MENU_BUTTON_X = 190;
 
+    /**
+     * 主菜单按钮宽度
+     */
     private static final int MENU_BUTTON_WIDTH = 180;
 
+    /**
+     * 主菜单按钮高度
+     */
     private static final int MENU_BUTTON_HEIGHT = 60;
 
     public MainGame() {
+        this.openWindow(GameWindowConfig.of("打~砖~块", WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT).setCloseOperation(JFrame.EXIT_ON_CLOSE));
+    }
 
-        JPanel mainPanel = new JPanel(null);
-        mainPanel.setBackground(Color.WHITE);
-
-        SwingFormFactory formFactory = SwingFormFactory.with(mainPanel, new Font("黑体", Font.BOLD, 26));
+    /**
+     * 构建主菜单内容，并为需要登录的入口绑定统一登录守卫
+     *
+     * @param panel 当前窗口的根面板
+     */
+    @Override
+    protected void buildContent(JPanel panel) {
+        SwingFormFactory formFactory = SwingFormFactory.with(panel, MAIN_MENU_TEXT);
         SwingActionFactory actionFactory = SwingActionFactory.with(this);
 
         Opt<String> currentUserId = GameSupporter.loadCurrentLoggedInUserId();
@@ -37,7 +68,8 @@ public class MainGame extends JFrame {
             formFactory.label(this.buildGreetingPrefix() + currentUserId.get(), 0, 470, WINDOW_WIDTH, MENU_BUTTON_HEIGHT).setHorizontalAlignment(JLabel.CENTER);
             actionFactory.bind(this.menuButton(formFactory, "退出登录", 550, Color.RED), this::logout);
         } else {
-            actionFactory.bind(this.menuButton(formFactory, "注册", 470, Color.WHITE), Register::new)
+            actionFactory
+                    .bind(this.menuButton(formFactory, "注册", 470, Color.WHITE), Register::new)
                     .bind(this.menuButton(formFactory, "登陆", 550, Color.WHITE), this::openLogin);
         }
 
@@ -46,14 +78,6 @@ public class MainGame extends JFrame {
                 .bind(this.menuButton(formFactory, "游戏设置", 190, Color.WHITE), this::openGameSetting)
                 .bind(this.menuButton(formFactory, "英雄榜", 270, Color.WHITE), this::openRecordList)
                 .bind(this.menuButton(formFactory, "退出游戏", 350, Color.WHITE), () -> System.exit(1));
-
-        this.add(mainPanel);
-        this.setBackground(Color.WHITE);
-        this.setBounds(WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setVisible(true);
-        this.setResizable(false);
-        this.setTitle("打~砖~块");
     }
 
     /**
@@ -98,28 +122,24 @@ public class MainGame extends JFrame {
 
     /**
      * 进入单人游戏
+     *
+     * @throws Exception 打开游戏失败时抛出异常
      */
-    private void startSingleGame() {
-
-        if (this.hasLoggedIn()) {
+    private void startSingleGame() throws Exception {
+        LoginGuard.of(this).run(() -> {
             this.setVisible(false);
             this.dispose();
             SwingUtilities.invokeLater(() -> JBreakout.open(this));
-        } else {
-            this.openLoginIfConfirmed();
-        }
-
+        });
     }
 
     /**
      * 打开游戏设置窗口
+     *
+     * @throws Exception 打开设置失败时抛出异常
      */
-    private void openGameSetting() {
-        if (this.hasLoggedIn()) {
-            new Setting();
-        } else {
-            this.openLoginIfConfirmed();
-        }
+    private void openGameSetting() throws Exception {
+        LoginGuard.of(this).run(Setting::new);
     }
 
     /**
@@ -142,35 +162,14 @@ public class MainGame extends JFrame {
 
     /**
      * 打开排行榜窗口
+     *
+     * @throws Exception 打开排行榜失败时抛出异常
      */
-    private void openRecordList() {
-
-        if (this.hasLoggedIn()) {
+    private void openRecordList() throws Exception {
+        LoginGuard.of(this).run(() -> {
             new RecordList();
             this.setVisible(false);
-        } else {
-            this.openLoginIfConfirmed();
-        }
-    }
-
-    /**
-     * 判断当前是否已有登录用户
-     *
-     * @return boolean 是否已登录
-     */
-    private boolean hasLoggedIn() {
-        return GameSupporter.loadCurrentLoggedInUserId().isPresent();
-    }
-
-    /**
-     * 未登录时询问是否跳转登录
-     */
-    private void openLoginIfConfirmed() {
-        int result = JOptionPane.showConfirmDialog(this, "请先登录！", "提示", JOptionPane.YES_NO_OPTION);
-        if (result == JOptionPane.YES_OPTION) {
-            this.setVisible(false);
-            new Login();
-        }
+        });
     }
 
     public static void main(String[] args) {

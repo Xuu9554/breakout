@@ -1,5 +1,6 @@
 import cn.hutool.core.lang.Opt;
 import dto.BreakoutGameResult;
+import dto.GameSetting;
 import ui.SwingActionExecutor;
 import ui.SwingFormFactory;
 
@@ -18,41 +19,96 @@ import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
 
+import static ui.GameFonts.GAME_INFO_TEXT;
+
 public class JBreakout extends JFrame implements KeyListener {
 
     private static final long serialVersionUID = 4655988232932265069L;
 
+    /**
+     * 游戏画布宽度
+     */
     public static final int APPLICATION_WIDTH = 400;
 
+    /**
+     * 游戏画布高度
+     */
     public static final int APPLICATION_HEIGHT = 545;
 
+    /**
+     * 游戏绘制组件宽度
+     */
     private static final int BREAKOUT_COMPONENT_WIDTH = 550;
 
+    /**
+     * 游戏窗口横坐标
+     */
     private static final int WINDOW_X = 550;
 
+    /**
+     * 游戏窗口纵坐标
+     */
     private static final int WINDOW_Y = 80;
 
+    /**
+     * 游戏窗口宽度
+     */
     private static final int WINDOW_WIDTH = 550;
 
+    /**
+     * 游戏窗口高度
+     */
     private static final int WINDOW_HEIGHT = 700;
 
+    /**
+     * 每行砖块数量
+     */
     private static final int BRICKS_PER_ROW = 10;
 
+    /**
+     * 砖块间距
+     */
     private static final int BRICK_SEP = 4;
 
+    /**
+     * 小球掉落时扣除的分数
+     */
     private static final int SCORE_DEDUCTED_ON_BALL_DROP = 50;
 
+    /**
+     * 胜利音效路径
+     */
     private static final String WIN_MUSIC_PATH = "music\\win.wav";
 
+    /**
+     * 失败音效路径
+     */
     private static final String LOSE_MUSIC_PATH = "music\\lose.wav";
 
+    /**
+     * 游戏背景音乐路径
+     */
     private static final String BACKGROUND_MUSIC_PATH = "music\\game.wav";
 
+    /**
+     * 砖块音效背景音乐路径
+     */
     private static final String BREAK_MUSIC_PATH = "music\\break.wav";
 
+    /**
+     * 轻快背景音乐路径
+     */
     private static final String HAPPY_MUSIC_PATH = "music\\happyMusic.wav";
 
+    /**
+     * 当前游戏上下文
+     */
     private final BreakoutGameContext context;
+
+    /**
+     * 当前游戏循环
+     */
+    private final Runnable gameLoop;
 
     /**
      * 打开当前登录用户的游戏窗口
@@ -76,8 +132,8 @@ public class JBreakout extends JFrame implements KeyListener {
 
         System.out.println("小球的生命：" + this.context.getBall().getLife());
         System.out.println("小球的大小：" + this.context.getBall().getRadius());
-        System.out.println("现在几帧：" + this.context.getPeriod());
-        System.out.println("通关条件：" + this.context.getSuccessCount());
+        System.out.println("现在几帧：" + this.context.getRoundState().getPeriod());
+        System.out.println("通关条件：" + this.context.getRoundState().getSuccessCount());
 
         File winMusicFile = new File(WIN_MUSIC_PATH);
         File loseMusicFile = new File(LOSE_MUSIC_PATH);
@@ -91,8 +147,7 @@ public class JBreakout extends JFrame implements KeyListener {
         JPanel gamePanel = new JPanel(null);
         gamePanel.setBackground(Color.WHITE);
 
-        Font bigFont = new Font("TimesRoman", Font.BOLD, 20);
-        SwingFormFactory formFactory = SwingFormFactory.with(gamePanel, bigFont);
+        SwingFormFactory formFactory = SwingFormFactory.with(gamePanel, GAME_INFO_TEXT);
 
         formFactory.label("本机最高纪录为：", 260, 550, 200, 40);
         JLabel great = formFactory.label("", 430, 550, 40, 40, Color.RED);
@@ -104,7 +159,7 @@ public class JBreakout extends JFrame implements KeyListener {
         JLabel brickCount = formFactory.label("", 410, 580, 40, 40, Color.RED);
 
         formFactory.label("页面刷新频率：", 30, 610, 150, 40);
-        JLabel rate = formFactory.label("", 180, 610, 40, 40, Color.RED);
+        JLabel fps = formFactory.label("", 180, 610, 40, 40, Color.RED);
 
         formFactory.label("当前游戏状态：", 260, 610, 150, 40);
         JLabel status = formFactory.label("未开始", 410, 610, 130, 40, Color.RED);
@@ -120,17 +175,25 @@ public class JBreakout extends JFrame implements KeyListener {
 
         this.playBackgroundMusic(backgroundMusicFile);
 
-        Runnable gameLoop = () -> this.runGameLoop(great, life, brickCount, rate, status, hadGainScore, winMusicFile, loseMusicFile);
+        this.gameLoop = () -> this.runGameLoop(great, life, brickCount, fps, status, hadGainScore, winMusicFile, loseMusicFile);
+        this.scheduleGameLoop();
+
+        great.setText(String.valueOf(this.context.getHighestScore()));
+    }
+
+    /**
+     * 按当前刷新频率启动游戏循环
+     */
+    private void scheduleGameLoop() {
+
         this.context.getTimer().schedule(new TimerTask() {
 
             @Override
             public void run() {
-                gameLoop.run();
+                JBreakout.this.gameLoop.run();
             }
 
-        }, 0, 1000 / this.context.getPeriod());
-
-        great.setText(String.valueOf(this.context.getHighestScore()));
+        }, 0, 1000 / this.context.getRoundState().getPeriod());
     }
 
     /**
@@ -139,28 +202,30 @@ public class JBreakout extends JFrame implements KeyListener {
      * @param great         最高分标签
      * @param life          生命标签
      * @param brickCount    剩余砖块数标签
-     * @param rate          刷新频率标签
+     * @param fps           刷新频率标签
      * @param status        游戏状态标签
      * @param hadGainScore  当前得分标签
      * @param winMusicFile  胜利音乐文件
      * @param loseMusicFile 失败音乐文件
      */
-    private void runGameLoop(JLabel great, JLabel life, JLabel brickCount, JLabel rate, JLabel status,
+    private void runGameLoop(JLabel great, JLabel life, JLabel brickCount, JLabel fps, JLabel status,
                              JLabel hadGainScore, File winMusicFile, File loseMusicFile) {
+
+        BreakoutRoundState roundState = this.context.getRoundState();
 
         this.updateBrickWidth();
         this.context.getBreakoutComponents().repaint();
 
-        if (this.context.getBall().moveAndBounce(this.context.getBoardWidth(), APPLICATION_HEIGHT, this.context.isPause(),
-                this.context.getRemainingBrickCount(), this.context.getPaddle())) {
-            this.context.deductScore(SCORE_DEDUCTED_ON_BALL_DROP);
+        if (this.context.getBall().moveAndBounce(roundState.getBoardWidth(), APPLICATION_HEIGHT, roundState.isPause(),
+                roundState.getRemainingBrickCount(), this.context.getPaddle())) {
+            roundState.deductScore(SCORE_DEDUCTED_ON_BALL_DROP);
         }
 
-        hadGainScore.setText(String.valueOf(this.context.getScore()));
+        hadGainScore.setText(String.valueOf(roundState.getScore()));
 
-        if (this.context.getScore() > this.context.getHighestScore()) {
+        if (roundState.getScore() > this.context.getHighestScore()) {
             hadGainScore.setForeground(Color.BLUE);
-            great.setText(String.valueOf(this.context.getScore()));
+            great.setText(String.valueOf(roundState.getScore()));
             great.setForeground(Color.BLUE);
         } else {
             hadGainScore.setForeground(Color.MAGENTA);
@@ -168,8 +233,8 @@ public class JBreakout extends JFrame implements KeyListener {
             great.setForeground(Color.RED);
         }
 
-        brickCount.setText(String.valueOf(this.context.getRemainingBrickCount()));
-        rate.setText(String.valueOf(this.context.getPeriod()));
+        brickCount.setText(String.valueOf(roundState.getRemainingBrickCount()));
+        fps.setText(String.valueOf(roundState.getPeriod()));
 
         if (this.context.getBall().collide(
                 this.context.getPaddle().getX(), this.context.getPaddle().getY(),
@@ -182,15 +247,15 @@ public class JBreakout extends JFrame implements KeyListener {
 
             life.setText(String.valueOf(this.context.getBall().getLife()));
 
-            if (this.context.getRemainingBrickCount() < this.context.getSuccessCount() + 1) {
+            if (this.context.hasClearedRequiredBricks()) {
                 this.dispose();
                 this.context.getTimer().cancel();
                 this.stopMusic();
                 this.playEndingMusic(winMusicFile);
                 this.setVisible(false);
 
-                String title = this.context.getScore() > this.context.getHighestScore() ? "恭喜您打破本机记录！" : "恭喜您成功通关！";
-                new Record(BreakoutGameResult.of(title, this.context.getScore()));
+                String title = roundState.getScore() > this.context.getHighestScore() ? "恭喜您打破本机记录！" : "恭喜您成功通关！";
+                new Record(BreakoutGameResult.of(title, roundState.getScore()));
             }
 
         } else {
@@ -212,13 +277,13 @@ public class JBreakout extends JFrame implements KeyListener {
                 this.context.getBall().reverseVelocityY();
 
                 brick.setAlive(false);
-                this.context.decreaseRemainingBrickCount();
+                roundState.decreaseRemainingBrickCount();
 
-                this.context.addScore(BreakoutGameContext.BRICK_SCORE.getOrDefault(brick.getColor(), 5));
+                roundState.addScore(BreakoutGameContext.BRICK_SCORE.getOrDefault(brick.getColor(), 5));
             }
         }
 
-        status.setText(this.context.isPause() ? "游戏暂停" : "游戏进行中");
+        status.setText(roundState.isPause() ? "游戏暂停" : "游戏进行中");
     }
 
     /**
@@ -276,12 +341,28 @@ public class JBreakout extends JFrame implements KeyListener {
     }
 
     /**
+     * 将设置页保存后的配置实时应用到当前局
+     *
+     * @param gameSetting 游戏配置
+     */
+    private void applyCurrentRoundSetting(GameSetting gameSetting) {
+        int oldPeriod = this.context.getRoundState().getPeriod();
+        this.context.applyCurrentRoundSetting(gameSetting);
+        if (oldPeriod != this.context.getRoundState().getPeriod()) {
+            this.context.restartTimer();
+            this.scheduleGameLoop();
+        }
+        this.context.getBreakoutComponents().repaint();
+    }
+
+    /**
      * 根据游戏面板宽度刷新砖块坐标
      */
     private void updateBrickWidth() {
         int rowIndex = 0;
         int columnIndex = 0;
-        int brickWidth = (this.context.getBoardWidth() - BRICKS_PER_ROW * BRICK_SEP) / BRICKS_PER_ROW;
+        BreakoutRoundState roundState = this.context.getRoundState();
+        int brickWidth = (roundState.getBoardWidth() - BRICKS_PER_ROW * BRICK_SEP) / BRICKS_PER_ROW;
         for (Brick brick : this.context.getBricks()) {
 
             brick.setWidth(brickWidth);
@@ -297,13 +378,10 @@ public class JBreakout extends JFrame implements KeyListener {
     }
 
     public void setBreakoutComponents() {
-        this.context.setBoardWidth(this.getContentPane().getWidth());
+        BreakoutRoundState roundState = this.context.getRoundState();
+        roundState.setBoardWidth(this.getContentPane().getWidth());
         int boardHeight = this.getContentPane().getHeight();
-        this.context.getPaddle().setStartPosition(this.context.getBoardWidth(), boardHeight);
-
-        System.out.println("Width：" + this.context.getBoardWidth() + "      Height：" + boardHeight + " " + this.context.getBricks().size());
-        System.out.println("Paddle的初始位置 (" + this.context.getPaddle().getX() + "，" + this.context.getPaddle().getY()
-                + ")  宽：" + this.context.getPaddle().getPaddleHeight() + " 长：" + this.context.getPaddle().getPaddleWidth());
+        this.context.getPaddle().setStartPosition(roundState.getBoardWidth(), boardHeight);
     }
 
     @Override
@@ -313,19 +391,20 @@ public class JBreakout extends JFrame implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        BreakoutRoundState roundState = this.context.getRoundState();
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                this.context.getPaddle().moveLeft(this.context.isPause());
+                this.context.getPaddle().moveLeft(roundState.isPause());
                 break;
             case KeyEvent.VK_RIGHT:
-                this.context.getPaddle().moveRight(this.context.getBoardWidth(), this.context.isPause());
+                this.context.getPaddle().moveRight(roundState.getBoardWidth(), roundState.isPause());
                 break;
             case KeyEvent.VK_SPACE:
-                this.context.togglePause();
+                roundState.togglePause();
                 break;
             case KeyEvent.VK_ESCAPE:
-                this.context.setPause(true);
-                new Setting();
+                roundState.setPause(true);
+                new Setting(this::applyCurrentRoundSetting);
                 break;
         }
     }

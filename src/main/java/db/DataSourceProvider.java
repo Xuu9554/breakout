@@ -25,18 +25,25 @@ public class DataSourceProvider {
         DATA_SOURCE.setTestWhileIdle(true);
         DATA_SOURCE.setTestOnBorrow(false);
         DATA_SOURCE.setTestOnReturn(false);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(DataSourceProvider::close, "breakout-datasource-shutdown"));
     }
 
     private DataSourceProvider() {
 
     }
 
-    public static DataSource fetchDataSource() {
+    public static DataSource get() {
         return DATA_SOURCE;
     }
 
-    public static void close() {
-        DATA_SOURCE.close();
+    /**
+     * 关闭数据库连接池
+     */
+    public static synchronized void close() {
+        if (!DATA_SOURCE.isClosed()) {
+            DATA_SOURCE.close();
+        }
     }
 
 }

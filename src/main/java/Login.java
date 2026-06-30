@@ -1,25 +1,41 @@
+import ui.AbstractGameFrame;
+import ui.GameWindowConfig;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class Login extends JFrame {
+import static ui.GameFonts.FORM_TEXT;
+
+public class Login extends AbstractGameFrame {
 
     private static final long serialVersionUID = 1504087619736129919L;
 
-    private final JTextField userIdField;
+    /**
+     * 用户账号输入框
+     */
+    private JTextField userIdField;
 
-    private final JPasswordField passwordField;
+    /**
+     * 用户密码输入框
+     */
+    private JPasswordField passwordField;
 
     public Login() {
+        this.openWindow(GameWindowConfig.of("用户登录", 650, 330, 380, 280).setCloseOperation(JFrame.DO_NOTHING_ON_CLOSE));
+    }
 
-        JPanel loginPanel = new JPanel();
-        loginPanel.setLayout(null);
-        loginPanel.setBackground(Color.white);
+    /**
+     * 构建用户登录表单
+     *
+     * @param panel 当前窗口的根面板
+     */
+    @Override
+    @SuppressWarnings("DuplicatedCode")
+    protected void buildContent(JPanel panel) {
 
-        Font font = new Font("黑体", Font.BOLD, 15);
-        SwingFormFactory formFactory = SwingFormFactory.with(loginPanel, font);
+        SwingFormFactory formFactory = SwingFormFactory.with(panel, FORM_TEXT);
 
         formFactory.label("账号", 30, 25, 180, 30);
         userIdField = formFactory.textField(110, 25, 180, 30);
@@ -30,21 +46,20 @@ public class Login extends JFrame {
         SwingActionFactory.with(this)
                 .bind(formFactory.button("确认", 230, 140, 110, 30, Color.GREEN), this::login)
                 .bind(formFactory.button("回到主界面", 50, 140, 150, 30, Color.GREEN), this::backHome);
-
-        this.setTitle("用户登录");
-        this.add(loginPanel);
-        this.setResizable(false);
-        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.setBounds(650, 330, 380, 280);
-        this.setVisible(true);
     }
 
+    /**
+     * 执行登录并回到主界面
+     */
     private void login() {
         GameSupporter.login(this.userIdField.getText(), String.valueOf(this.passwordField.getPassword()));
         this.setVisible(false);
         new MainGame();
     }
 
+    /**
+     * 不登录，直接回到主界面
+     */
     private void backHome() {
         this.setVisible(false);
         new MainGame();

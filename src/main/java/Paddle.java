@@ -8,18 +8,36 @@ public class Paddle implements Serializable {
 
     private static final long serialVersionUID = 7510495643437996449L;
 
+    /**
+     * 挡板移动速度
+     */
     private int speed = 30;
 
+    /**
+     * 挡板左上角横坐标
+     */
     private int x = 0;
 
+    /**
+     * 挡板左上角纵坐标
+     */
     private int y = 0;
 
     // ------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * 挡板初始位置距离面板底部的偏移量
+     */
     private static final int PADDLE_Y_OFFSET = 180;
 
+    /**
+     * 挡板绘制宽度
+     */
     private static final int DRAW_PADDLE_WIDTH = 90;
 
+    /**
+     * 挡板绘制高度
+     */
     private static final int DRAW_PADDLE_HEIGHT = 20;
 
     public void draw(Graphics g) {

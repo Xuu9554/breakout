@@ -12,10 +12,6 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 @Slf4j
 public class SwingActionExecutor {
 
-    public static void execute(SwingOperation operation) {
-        execute(null, operation);
-    }
-
     public static void execute(Component parent, SwingOperation operation) {
         try {
             operation.execute();

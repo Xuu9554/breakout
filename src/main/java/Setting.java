@@ -1,33 +1,75 @@
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import dto.GameSetting;
 import exception.ServiceAssert;
+import ui.AbstractGameFrame;
+import ui.GameWindowConfig;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-public class Setting extends JFrame {
+import static ui.GameFonts.FORM_TEXT;
+
+public class Setting extends AbstractGameFrame {
 
     private static final long serialVersionUID = -8966949405858572793L;
 
+    /**
+     * 小球生命输入框
+     */
     private final JTextField ballLife = new JTextField();
 
+    /**
+     * 小球大小输入框
+     */
     private final JTextField ballSize = new JTextField();
 
+    /**
+     * 刷新频率输入框
+     */
     private final JTextField fps = new JTextField();
 
+    /**
+     * 通关块数输入框
+     */
     private final JTextField clearBrickCount = new JTextField();
 
+    /**
+     * 配置保存后的附加动作
+     */
+    private final Consumer<GameSetting> settingAppliedAction;
+
+    /**
+     * 打开游戏设置窗口
+     */
     public Setting() {
+        this(null);
+    }
 
-        JPanel settingPanel = new JPanel();
-        settingPanel.setLayout(null);
-        settingPanel.setBackground(Color.WHITE);
+    /**
+     * 打开游戏设置窗口，并在保存后执行额外动作
+     *
+     * @param settingAppliedAction 保存后的配置回调
+     */
+    public Setting(Consumer<GameSetting> settingAppliedAction) {
+        this.settingAppliedAction = settingAppliedAction;
+        this.openWindow(GameWindowConfig.of("Game Setting", 650, 330, 380, 280));
+    }
 
-        SwingFormFactory formFactory = SwingFormFactory.with(settingPanel, new Font("黑体", Font.BOLD, 15));
+    /**
+     * 构建游戏设置表单
+     *
+     * @param panel 当前窗口的根面板
+     */
+    @Override
+    protected void buildContent(JPanel panel) {
+
+        SwingFormFactory formFactory = SwingFormFactory.with(panel, FORM_TEXT);
         GameSetting gameSetting = GameSupporter.loadCurrentUserGameSetting();
 
         formFactory.label("小球生命", 30, 25, 180, 30);
@@ -48,15 +90,9 @@ public class Setting extends JFrame {
         formFactory.label("通关块数", 30, 130, 180, 30);
         formFactory.component(this.clearBrickCount, 110, 130, 50, 30);
         this.clearBrickCount.setText(String.valueOf(gameSetting.getClearBrickCount()));
-        formFactory.label("建议输入0-99之间的整数", 170, 130, 180, 30, Color.RED);
+        formFactory.label("建议输入1-" + MAX_CLEAR_BRICK_COUNT + "之间的整数", 170, 130, 180, 30, Color.RED);
 
         SwingActionFactory.with(this).bind(formFactory.button("Apply", 230, 180, 110, 30, Color.GREEN), this::applySetting);
-
-        this.add(settingPanel);
-        this.setTitle("Game Setting");
-        this.setResizable(false);
-        this.setBounds(650, 330, 380, 280);
-        this.setVisible(true);
     }
 
     /**
@@ -69,13 +105,19 @@ public class Setting extends JFrame {
         int realFps = this.readUnsignedInteger(this.fps, "画面刷新帧率不合法");
         int realClearBrickCount = this.readUnsignedInteger(this.clearBrickCount, "通关块数不合法");
 
-        GameSetting gameSetting = GameSetting.of(Math.min(realFps, MAX_FPS), Math.max(realBallLife, MIN_BALL_LIFE),
+        GameSetting gameSetting = GameSetting.of(clampValue(realFps, MIN_FPS, MAX_FPS), Math.max(realBallLife, MIN_BALL_LIFE),
                 clampValue(realBallSize, MIN_BALL_SIZE, MAX_BALL_SIZE), clampValue(realClearBrickCount, MIN_CLEAR_BRICK_COUNT, MAX_CLEAR_BRICK_COUNT));
 
         GameSupporter.updateCurrentUserGameSetting(gameSetting);
 
+        if (!ObjectUtil.isNull(this.settingAppliedAction)) {
+            this.settingAppliedAction.accept(gameSetting);
+        }
+
         String message = StrUtil.format(
-                "修改参数成功~下局生效！\n生命: {}\n小球大小: {}\n刷新频率: {}\n通关块数: {}", realBallLife, realBallSize, realFps, realClearBrickCount);
+                "修改参数成功~{}！\n生命: {}\n小球大小: {}\n刷新频率: {}\n通关块数: {}",
+                ObjectUtil.isNull(this.settingAppliedAction) ? "下局生效" : "当前局已生效",
+                gameSetting.getBallLife(), gameSetting.getBallSize(), gameSetting.getFps(), gameSetting.getClearBrickCount());
 
         JOptionPane.showMessageDialog(this, message, "操作成功！", JOptionPane.INFORMATION_MESSAGE);
         this.setVisible(false);
@@ -107,18 +149,44 @@ public class Setting extends JFrame {
 
     // ------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * 非负整数正则
+     */
     private final static Pattern UNSIGNED_INTEGER = Pattern.compile("[0-9]+");
 
+    /**
+     * 小球最小生命
+     */
     private static final int MIN_BALL_LIFE = 1;
 
+    /**
+     * 小球最小尺寸
+     */
     private static final int MIN_BALL_SIZE = 1;
 
+    /**
+     * 小球最大尺寸
+     */
     private static final int MAX_BALL_SIZE = 18;
 
+    /**
+     * 最小刷新频率
+     */
+    private static final int MIN_FPS = 1;
+
+    /**
+     * 最大刷新频率
+     */
     private static final int MAX_FPS = 100;
 
-    private static final int MIN_CLEAR_BRICK_COUNT = 0;
+    /**
+     * 最小通关块数
+     */
+    private static final int MIN_CLEAR_BRICK_COUNT = 1;
 
-    private static final int MAX_CLEAR_BRICK_COUNT = 99;
+    /**
+     * 最大通关块数
+     */
+    private static final int MAX_CLEAR_BRICK_COUNT = BreakoutGameContext.BRICK_COUNT;
 
 }

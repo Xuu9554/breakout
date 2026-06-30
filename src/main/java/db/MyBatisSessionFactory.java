@@ -9,7 +9,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 
-public final class MyBatisSessionFactory {
+public class MyBatisSessionFactory {
 
     private final static SqlSessionFactory SQL_SESSION_FACTORY = initializeSqlSessionFactory();
 
@@ -29,7 +29,7 @@ public final class MyBatisSessionFactory {
 
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
 
-        Environment environment = new Environment("test", transactionFactory, DataSourceProvider.fetchDataSource());
+        Environment environment = new Environment("test", transactionFactory, DataSourceProvider.get());
 
         Configuration configuration = new Configuration(environment);
         configuration.setMapUnderscoreToCamelCase(true);
