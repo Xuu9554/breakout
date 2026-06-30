@@ -1,26 +1,22 @@
 import cn.hutool.core.lang.Opt;
+import cn.hutool.core.util.RandomUtil;
 import dto.BreakoutGameResult;
 import dto.GameSetting;
+import lombok.extern.slf4j.Slf4j;
 import ui.SwingActionExecutor;
 import ui.SwingFormFactory;
 
 import javax.swing.*;
-import java.applet.Applet;
-import java.applet.AudioClip;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.TimerTask;
 
 import static ui.GameFonts.GAME_INFO_TEXT;
 
+@Slf4j
 public class JBreakout extends JFrame implements KeyListener {
 
     private static final long serialVersionUID = 4655988232932265069L;
@@ -76,29 +72,14 @@ public class JBreakout extends JFrame implements KeyListener {
     private final static int SCORE_DEDUCTED_ON_BALL_DROP = 50;
 
     /**
-     * 胜利音效路径
+     * 破纪录背景音乐资源路径
      */
-    private final static String WIN_MUSIC_PATH = "music\\win.wav";
+    private final static String RECORD_BREAKING_BACKGROUND_MUSIC = "/music/break.wav";
 
     /**
-     * 失败音效路径
+     * 背景音乐资源池
      */
-    private final static String LOSE_MUSIC_PATH = "music\\lose.wav";
-
-    /**
-     * 游戏背景音乐路径
-     */
-    private final static String BACKGROUND_MUSIC_PATH = "music\\game.wav";
-
-    /**
-     * 砖块音效背景音乐路径
-     */
-    private final static String BREAK_MUSIC_PATH = "music\\break.wav";
-
-    /**
-     * 轻快背景音乐路径
-     */
-    private final static String HAPPY_MUSIC_PATH = "music\\happyMusic.wav";
+    private final static List<String> NORMAL_BACKGROUND_MUSIC = Arrays.asList("/music/game1.wav", "/music/game2.wav");
 
     /**
      * 当前游戏上下文
@@ -109,6 +90,11 @@ public class JBreakout extends JFrame implements KeyListener {
      * 当前游戏循环
      */
     private final Runnable gameLoop;
+
+    /**
+     * 当前正在循环播放的背景音乐资源路径
+     */
+    private String currentBackgroundMusicResource;
 
     /**
      * 打开当前登录用户的游戏窗口
@@ -134,10 +120,6 @@ public class JBreakout extends JFrame implements KeyListener {
         System.out.println("小球的大小：" + this.context.getBall().getRadius());
         System.out.println("现在几帧：" + this.context.getRoundState().getPeriod());
         System.out.println("通关条件：" + this.context.getRoundState().getSuccessCount());
-
-        File winMusicFile = new File(WIN_MUSIC_PATH);
-        File loseMusicFile = new File(LOSE_MUSIC_PATH);
-        File backgroundMusicFile = new File(this.randomBackgroundMusicPath());
 
         this.setSize(APPLICATION_WIDTH, APPLICATION_HEIGHT);
         this.setTitle("打~砖~块");
@@ -173,9 +155,9 @@ public class JBreakout extends JFrame implements KeyListener {
         this.context.getBreakoutComponents().addKeyListener(this);
         this.context.getBreakoutComponents().setFocusable(true);
 
-        this.playBackgroundMusic(backgroundMusicFile);
+        this.switchBackgroundMusic(this.randomBackgroundMusic());
 
-        this.gameLoop = () -> this.runGameLoop(great, life, brickCount, fps, status, hadGainScore, winMusicFile, loseMusicFile);
+        this.gameLoop = () -> this.runGameLoop(great, life, brickCount, fps, status, hadGainScore);
         this.scheduleGameLoop();
 
         great.setText(String.valueOf(this.context.getHighestScore()));
@@ -199,17 +181,14 @@ public class JBreakout extends JFrame implements KeyListener {
     /**
      * 执行一帧游戏刷新
      *
-     * @param great         最高分标签
-     * @param life          生命标签
-     * @param brickCount    剩余砖块数标签
-     * @param fps           刷新频率标签
-     * @param status        游戏状态标签
-     * @param hadGainScore  当前得分标签
-     * @param winMusicFile  胜利音乐文件
-     * @param loseMusicFile 失败音乐文件
+     * @param great        最高分标签
+     * @param life         生命标签
+     * @param brickCount   剩余砖块数标签
+     * @param fps          刷新频率标签
+     * @param status       游戏状态标签
+     * @param hadGainScore 当前得分标签
      */
-    private void runGameLoop(JLabel great, JLabel life, JLabel brickCount, JLabel fps, JLabel status,
-                             JLabel hadGainScore, File winMusicFile, File loseMusicFile) {
+    private void runGameLoop(JLabel great, JLabel life, JLabel brickCount, JLabel fps, JLabel status, JLabel hadGainScore) {
 
         BreakoutRoundState roundState = this.context.getRoundState();
 
@@ -222,6 +201,7 @@ public class JBreakout extends JFrame implements KeyListener {
         }
 
         hadGainScore.setText(String.valueOf(roundState.getScore()));
+        this.updateBackgroundMusicByScore(roundState);
 
         if (roundState.getScore() > this.context.getHighestScore()) {
             hadGainScore.setForeground(Color.BLUE);
@@ -254,7 +234,7 @@ public class JBreakout extends JFrame implements KeyListener {
                 this.dispose();
                 this.context.getTimer().cancel();
                 this.stopMusic();
-                this.playEndingMusic(winMusicFile);
+                this.playEndingMusic("/music/win.wav");
                 this.setVisible(false);
 
                 String title = roundState.getScore() > this.context.getHighestScore() ? "恭喜您打破本机记录！" : "恭喜您成功通关！";
@@ -266,7 +246,7 @@ public class JBreakout extends JFrame implements KeyListener {
             life.setText(String.valueOf(0));
             status.setText("游戏终止");
             this.stopMusic();
-            this.playEndingMusic(loseMusicFile);
+            this.playEndingMusic("/music/lose.wav");
             JOptionPane.showMessageDialog(null, "叭好意思您失败了~", "游戏结束", JOptionPane.INFORMATION_MESSAGE);
             this.setVisible(false);
             this.context.getTimer().cancel();
@@ -286,51 +266,71 @@ public class JBreakout extends JFrame implements KeyListener {
         status.setText(roundState.isPause() ? "游戏暂停" : "游戏进行中");
     }
 
+    /**
+     * 随机选择一首普通背景音乐资源
+     *
+     * @return {@link String} 普通背景音乐资源路径
+     */
+    private String randomBackgroundMusic() {
+        return RandomUtil.randomEle(NORMAL_BACKGROUND_MUSIC);
+    }
 
     /**
-     * 随机选择一首游戏背景音乐
+     * 根据当前分数切换背景音乐
      *
-     * @return {@link String} 背景音乐路径
+     * @param roundState 当前局状态
      */
-    private String randomBackgroundMusicPath() {
+    private void updateBackgroundMusicByScore(BreakoutRoundState roundState) {
 
-        List<String> musicFileList = new ArrayList<>();
-        musicFileList.add(BACKGROUND_MUSIC_PATH);
-        musicFileList.add(BREAK_MUSIC_PATH);
-        musicFileList.add(HAPPY_MUSIC_PATH);
+        if (roundState.getScore() > this.context.getHighestScore()) {
+            this.switchBackgroundMusic(RECORD_BREAKING_BACKGROUND_MUSIC);
+        } else if (RECORD_BREAKING_BACKGROUND_MUSIC.equals(this.currentBackgroundMusicResource)) {
+            this.switchBackgroundMusic(this.randomBackgroundMusic());
+        }
+    }
 
-        String musicFileName = musicFileList.get(new Random().nextInt(musicFileList.size()));
-        System.out.println("当前播放音乐：" + musicFileName);
-        return musicFileName;
+    /**
+     * 切换背景音乐
+     *
+     * @param musicResource 音乐资源路径
+     */
+    private void switchBackgroundMusic(String musicResource) {
+
+        if (musicResource.equals(this.currentBackgroundMusicResource)) {
+            return;
+        }
+
+        this.currentBackgroundMusicResource = musicResource;
+        this.playBackgroundMusic(musicResource);
+
+        if (this.context.getRoundState().isPause()) {
+            this.context.getAudioPlayer().pause();
+        }
     }
 
     /**
      * 播放背景音乐
      *
-     * @param musicFile 音乐文件
+     * @param musicResource 音乐资源路径
      */
-    private void playBackgroundMusic(File musicFile) {
-        URI bgmUri = musicFile.toURI();
+    private void playBackgroundMusic(String musicResource) {
         try {
-            URL url = bgmUri.toURL();
-            this.context.setClip(Applet.newAudioClip(url));
-            this.context.getClip().loop();
-        } catch (MalformedURLException exception) {
-            JOptionPane.showMessageDialog(null, "播放音乐时遇到了错误！", "提示", JOptionPane.INFORMATION_MESSAGE);
+            this.context.getAudioPlayer().loop(musicResource);
+        } catch (Exception e) {
+            log.error("尝试播放背景音乐时遇到错误: {}", e.getMessage(), e);
         }
     }
 
     /**
      * 播放游戏结束音乐
      *
-     * @param musicFile 音乐文件
+     * @param musicResource 音乐资源路径
      */
-    private void playEndingMusic(File musicFile) {
+    private void playEndingMusic(String musicResource) {
         try {
-            this.context.setClip(Applet.newAudioClip(musicFile.toURI().toURL()));
-            this.context.getClip().play();
-        } catch (MalformedURLException exception) {
-            JOptionPane.showMessageDialog(null, "播放音乐时遇到了错误！", "提示", JOptionPane.INFORMATION_MESSAGE);
+            this.context.getAudioPlayer().playOnce(musicResource);
+        } catch (Exception e) {
+            log.error("尝试播放游戏结束音乐时遇到错误: {}", e.getMessage(), e);
         }
     }
 
@@ -338,7 +338,18 @@ public class JBreakout extends JFrame implements KeyListener {
      * 停止当前播放的音乐
      */
     private void stopMusic() {
-        Opt.ofNullable(this.context.getClip()).ifPresent(AudioClip::stop);
+        this.context.getAudioPlayer().stop();
+    }
+
+    /**
+     * 按当前暂停状态切换背景音乐
+     */
+    private void toggleBackgroundMusic() {
+        if (this.context.getRoundState().isPause()) {
+            this.context.getAudioPlayer().pause();
+        } else {
+            this.context.getAudioPlayer().resume();
+        }
     }
 
     /**
@@ -402,9 +413,11 @@ public class JBreakout extends JFrame implements KeyListener {
                 break;
             case KeyEvent.VK_SPACE:
                 roundState.togglePause();
+                this.toggleBackgroundMusic();
                 break;
             case KeyEvent.VK_ESCAPE:
                 roundState.setPause(true);
+                this.context.getAudioPlayer().pause();
                 new Setting(this::applyCurrentRoundSetting);
                 break;
         }

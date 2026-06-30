@@ -4,8 +4,8 @@ import db.MapperExecutor;
 import dto.GameSetting;
 import dto.User;
 import lombok.Data;
+import ui.GameAudioPlayer;
 
-import java.applet.AudioClip;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -56,7 +56,7 @@ public class BreakoutGameContext {
     /**
      * 当前正在播放的音频
      */
-    private AudioClip clip;
+    private final GameAudioPlayer audioPlayer;
 
     /**
      * 创建当前登录用户的一局游戏上下文
@@ -70,6 +70,7 @@ public class BreakoutGameContext {
         this.bricks = this.createBricks();
         this.timer = new Timer();
         this.roundState = new BreakoutRoundState();
+        this.audioPlayer = new GameAudioPlayer();
 
         this.breakoutComponents = new BreakoutComponents(this.paddle, this.ball, this.bricks);
         this.highestScore = MapperExecutor.query(BreakoutMapper::fetchCurrentLoggedInUserHighScore);

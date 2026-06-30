@@ -1,3 +1,4 @@
+import cn.hutool.core.util.ObjectUtil;
 import lombok.Data;
 import ui.GameDrawable;
 
@@ -266,7 +267,7 @@ public class Ball implements Serializable, GameDrawable {
             // 矩形碰撞需要X轴和Y轴都进入重叠区，因此较晚进入的那个时间才是真正发生碰撞的时间
             double currentHitTime = Math.max(horizontalHitTime, verticalHitTime);
 
-            if (hitBrick == null || currentHitTime < earliestHitTime) {
+            if (ObjectUtil.isNull(hitBrick) || currentHitTime < earliestHitTime) {
                 // 保留当前帧中最早发生碰撞的砖块
                 hitBrick = brick;
                 earliestHitTime = currentHitTime;
