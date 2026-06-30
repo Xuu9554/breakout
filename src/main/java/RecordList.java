@@ -24,22 +24,22 @@ public class RecordList extends AbstractGameFrame {
     /**
      * 排行榜窗口横坐标
      */
-    private static final int WINDOW_X = 550;
+    private final static int WINDOW_X = 550;
 
     /**
      * 排行榜窗口纵坐标
      */
-    private static final int WINDOW_Y = 130;
+    private final static int WINDOW_Y = 130;
 
     /**
      * 排行榜窗口宽度
      */
-    private static final int WINDOW_WIDTH = 550;
+    private final static int WINDOW_WIDTH = 550;
 
     /**
      * 排行榜窗口高度
      */
-    private static final int WINDOW_HEIGHT = 650;
+    private final static int WINDOW_HEIGHT = 650;
 
     /**
      * 排行榜底部操作面板

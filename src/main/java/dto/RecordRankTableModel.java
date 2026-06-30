@@ -9,7 +9,7 @@ public class RecordRankTableModel extends AbstractTableModel {
 
     private static final long serialVersionUID = 5925367813614833094L;
 
-    private static final String[] COLUMN_NAMES = {"排名", "账号", "成绩", "完成时间"};
+    private final static String[] COLUMN_NAMES = {"排名", "账号", "成绩", "完成时间"};
 
     private final List<User> records;
 

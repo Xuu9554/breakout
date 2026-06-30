@@ -17,37 +17,37 @@ public class MainGame extends AbstractGameFrame {
     /**
      * 主菜单窗口横坐标
      */
-    private static final int WINDOW_X = 550;
+    private final static int WINDOW_X = 550;
 
     /**
      * 主菜单窗口纵坐标
      */
-    private static final int WINDOW_Y = 80;
+    private final static int WINDOW_Y = 80;
 
     /**
      * 主菜单窗口宽度
      */
-    private static final int WINDOW_WIDTH = 550;
+    private final static int WINDOW_WIDTH = 550;
 
     /**
      * 主菜单窗口高度
      */
-    private static final int WINDOW_HEIGHT = 700;
+    private final static int WINDOW_HEIGHT = 700;
 
     /**
      * 主菜单按钮横坐标
      */
-    private static final int MENU_BUTTON_X = 190;
+    private final static int MENU_BUTTON_X = 190;
 
     /**
      * 主菜单按钮宽度
      */
-    private static final int MENU_BUTTON_WIDTH = 180;
+    private final static int MENU_BUTTON_WIDTH = 180;
 
     /**
      * 主菜单按钮高度
      */
-    private static final int MENU_BUTTON_HEIGHT = 60;
+    private final static int MENU_BUTTON_HEIGHT = 60;
 
     public MainGame() {
         this.openWindow(GameWindowConfig.of("打~砖~块", WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT).setCloseOperation(JFrame.EXIT_ON_CLOSE));

@@ -28,77 +28,77 @@ public class JBreakout extends JFrame implements KeyListener {
     /**
      * 游戏画布宽度
      */
-    public static final int APPLICATION_WIDTH = 400;
+    public final static int APPLICATION_WIDTH = 400;
 
     /**
      * 游戏画布高度
      */
-    public static final int APPLICATION_HEIGHT = 545;
+    public final static int APPLICATION_HEIGHT = 545;
 
     /**
      * 游戏绘制组件宽度
      */
-    private static final int BREAKOUT_COMPONENT_WIDTH = 550;
+    private final static int BREAKOUT_COMPONENT_WIDTH = 550;
 
     /**
      * 游戏窗口横坐标
      */
-    private static final int WINDOW_X = 550;
+    private final static int WINDOW_X = 550;
 
     /**
      * 游戏窗口纵坐标
      */
-    private static final int WINDOW_Y = 80;
+    private final static int WINDOW_Y = 80;
 
     /**
      * 游戏窗口宽度
      */
-    private static final int WINDOW_WIDTH = 550;
+    private final static int WINDOW_WIDTH = 550;
 
     /**
      * 游戏窗口高度
      */
-    private static final int WINDOW_HEIGHT = 700;
+    private final static int WINDOW_HEIGHT = 700;
 
     /**
      * 每行砖块数量
      */
-    private static final int BRICKS_PER_ROW = 10;
+    private final static int BRICKS_PER_ROW = 10;
 
     /**
      * 砖块间距
      */
-    private static final int BRICK_SEP = 4;
+    private final static int BRICK_SEP = 4;
 
     /**
      * 小球掉落时扣除的分数
      */
-    private static final int SCORE_DEDUCTED_ON_BALL_DROP = 50;
+    private final static int SCORE_DEDUCTED_ON_BALL_DROP = 50;
 
     /**
      * 胜利音效路径
      */
-    private static final String WIN_MUSIC_PATH = "music\\win.wav";
+    private final static String WIN_MUSIC_PATH = "music\\win.wav";
 
     /**
      * 失败音效路径
      */
-    private static final String LOSE_MUSIC_PATH = "music\\lose.wav";
+    private final static String LOSE_MUSIC_PATH = "music\\lose.wav";
 
     /**
      * 游戏背景音乐路径
      */
-    private static final String BACKGROUND_MUSIC_PATH = "music\\game.wav";
+    private final static String BACKGROUND_MUSIC_PATH = "music\\game.wav";
 
     /**
      * 砖块音效背景音乐路径
      */
-    private static final String BREAK_MUSIC_PATH = "music\\break.wav";
+    private final static String BREAK_MUSIC_PATH = "music\\break.wav";
 
     /**
      * 轻快背景音乐路径
      */
-    private static final String HAPPY_MUSIC_PATH = "music\\happyMusic.wav";
+    private final static String HAPPY_MUSIC_PATH = "music\\happyMusic.wav";
 
     /**
      * 当前游戏上下文

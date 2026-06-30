@@ -20,8 +20,14 @@ public class GameSupporter {
     /**
      * 登录态存放文件
      */
-    private static final String CURRENT_USER_PATH = DESKTOP_PATH + "\\.breakout\\current-user.txt";
+    private final static String CURRENT_USER_PATH = DESKTOP_PATH + "\\.breakout\\current-user.txt";
 
+    /**
+     * 根据用户账号查询用户
+     *
+     * @param userId 用户账号
+     * @return {@link User} 用户信息
+     */
     public static User fetchUser(String userId) {
         return MapperExecutor.query(mapper -> mapper.findByUserId(userId));
     }
@@ -45,6 +51,12 @@ public class GameSupporter {
         FileUtil.writeUtf8String(userId, CURRENT_USER_PATH);
     }
 
+    /**
+     * 用户注册
+     *
+     * @param userId   用户账号
+     * @param password 用户密码
+     */
     public static void register(String userId, String password) {
 
         ServiceAssert.isTrue(!StrUtil.hasBlank(userId, password), "请输入账号&密码");
@@ -53,6 +65,11 @@ public class GameSupporter {
         MapperExecutor.execute(mapper -> mapper.createUser(userId, password));
     }
 
+    /**
+     * 加载当前登录用户账号
+     *
+     * @return {@link Opt}<{@link String}> 当前登录用户账号
+     */
     public static Opt<String> loadCurrentLoggedInUserId() {
         return Opt.ofBlankAble(CURRENT_USER_PATH).filter(FileUtil::exist).map(FileUtil::readUtf8String);
     }
@@ -66,6 +83,9 @@ public class GameSupporter {
         return loadCurrentLoggedInUserId().map(GameSupporter::fetchUser).orElseThrow(ServiceException::new, "请先登录！");
     }
 
+    /**
+     * 用户注销
+     */
     public static void logout() {
         FileUtil.del(CURRENT_USER_PATH);
     }

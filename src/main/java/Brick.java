@@ -11,7 +11,7 @@ public class Brick implements Serializable {
     /**
      * 砖块高度
      */
-    public static final int HEIGHT = 16;
+    public final static int HEIGHT = 16;
 
     /**
      * 砖块宽度

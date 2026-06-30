@@ -157,36 +157,36 @@ public class Setting extends AbstractGameFrame {
     /**
      * 小球最小生命
      */
-    private static final int MIN_BALL_LIFE = 1;
+    private final static int MIN_BALL_LIFE = 1;
 
     /**
      * 小球最小尺寸
      */
-    private static final int MIN_BALL_SIZE = 1;
+    private final static int MIN_BALL_SIZE = 1;
 
     /**
      * 小球最大尺寸
      */
-    private static final int MAX_BALL_SIZE = 18;
+    private final static int MAX_BALL_SIZE = 18;
 
     /**
      * 最小刷新频率
      */
-    private static final int MIN_FPS = 1;
+    private final static int MIN_FPS = 1;
 
     /**
      * 最大刷新频率
      */
-    private static final int MAX_FPS = 100;
+    private final static int MAX_FPS = 100;
 
     /**
      * 最小通关块数
      */
-    private static final int MIN_CLEAR_BRICK_COUNT = 1;
+    private final static int MIN_CLEAR_BRICK_COUNT = 1;
 
     /**
      * 最大通关块数
      */
-    private static final int MAX_CLEAR_BRICK_COUNT = BreakoutGameContext.BRICK_COUNT;
+    private final static int MAX_CLEAR_BRICK_COUNT = BreakoutGameContext.BRICK_COUNT;
 
 }

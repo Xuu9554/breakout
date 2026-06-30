@@ -28,17 +28,17 @@ public class Paddle implements Serializable {
     /**
      * 挡板初始位置距离面板底部的偏移量
      */
-    private static final int PADDLE_Y_OFFSET = 180;
+    private final static int PADDLE_Y_OFFSET = 180;
 
     /**
      * 挡板绘制宽度
      */
-    private static final int DRAW_PADDLE_WIDTH = 90;
+    private final static int DRAW_PADDLE_WIDTH = 90;
 
     /**
      * 挡板绘制高度
      */
-    private static final int DRAW_PADDLE_HEIGHT = 20;
+    private final static int DRAW_PADDLE_HEIGHT = 20;
 
     public void draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;

@@ -5,7 +5,7 @@ import java.awt.*;
 
 public class LoginGuard {
 
-    private static final String LOGIN_REQUIRED_MESSAGE = "请先登录！";
+    private final static String LOGIN_REQUIRED_MESSAGE = "请先登录！";
 
     private final Component parent;
 
