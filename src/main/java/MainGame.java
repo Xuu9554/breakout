@@ -1,6 +1,8 @@
 import cn.hutool.core.lang.Opt;
+import db.DataSourceBootstrap;
 import ui.AbstractGameFrame;
 import ui.GameWindowConfig;
+import ui.SwingActionExecutor;
 import ui.SwingActionFactory;
 import ui.SwingFormFactory;
 
@@ -173,7 +175,10 @@ public class MainGame extends AbstractGameFrame {
     }
 
     public static void main(String[] args) {
-        new MainGame();
+        SwingActionExecutor.execute(null, () -> {
+            DataSourceBootstrap.initialize();
+            SwingUtilities.invokeLater(() -> SwingActionExecutor.execute(null, MainGame::new));
+        });
     }
 
 }

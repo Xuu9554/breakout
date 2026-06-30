@@ -1,10 +1,11 @@
 import lombok.Data;
+import ui.GameDrawable;
 
 import java.awt.*;
 import java.io.Serializable;
 
 @Data
-public class Brick implements Serializable {
+public class Brick implements Serializable, GameDrawable {
 
     private static final long serialVersionUID = -3703605258219341112L;
 
@@ -38,11 +39,11 @@ public class Brick implements Serializable {
      */
     private Color color;
 
-    public void draw(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
+    @Override
+    public void draw(Graphics2D graphics) {
         if (this.alive) {
-            g2.setColor(this.color);
-            g2.fillRect(this.x, this.y, this.width, Brick.HEIGHT);
+            graphics.setColor(this.color);
+            graphics.fillRect(this.x, this.y, this.width, Brick.HEIGHT);
         }
     }
 

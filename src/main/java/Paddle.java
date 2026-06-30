@@ -1,10 +1,11 @@
 import lombok.Data;
+import ui.GameDrawable;
 
 import java.awt.*;
 import java.io.Serializable;
 
 @Data
-public class Paddle implements Serializable {
+public class Paddle implements Serializable, GameDrawable {
 
     private static final long serialVersionUID = 7510495643437996449L;
 
@@ -40,11 +41,11 @@ public class Paddle implements Serializable {
      */
     private final static int DRAW_PADDLE_HEIGHT = 20;
 
-    public void draw(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.drawRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
-        g2.setColor(Color.BLACK);
-        g2.fillRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
+    @Override
+    public void draw(Graphics2D graphics) {
+        graphics.drawRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(this.x, this.y, DRAW_PADDLE_WIDTH, DRAW_PADDLE_HEIGHT);
     }
 
     /**

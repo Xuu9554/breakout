@@ -8,13 +8,20 @@ public class DataSourceProvider {
 
     private final static DruidDataSource DATA_SOURCE = new DruidDataSource();
 
-    private final static String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/breakout?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&&serverTimezone=Asia/Shanghai";
+    protected final static String SERVER_JDBC_URL = "jdbc:mysql://127.0.0.1:3306/?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai";
+
+    protected final static String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/breakout?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai";
+
+    protected final static String USERNAME = "root";
+
+    protected final static String PASSWORD = "123456";
 
     static {
-        DATA_SOURCE.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
         DATA_SOURCE.setUrl(JDBC_URL);
-        DATA_SOURCE.setUsername("root");
-        DATA_SOURCE.setPassword("123456");
+        DATA_SOURCE.setUsername(USERNAME);
+        DATA_SOURCE.setPassword(PASSWORD);
+        DATA_SOURCE.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         DATA_SOURCE.setInitialSize(2);
         DATA_SOURCE.setMinIdle(2);

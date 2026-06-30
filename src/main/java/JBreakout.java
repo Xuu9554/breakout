@@ -236,16 +236,19 @@ public class JBreakout extends JFrame implements KeyListener {
         brickCount.setText(String.valueOf(roundState.getRemainingBrickCount()));
         fps.setText(String.valueOf(roundState.getPeriod()));
 
-        if (this.context.getBall().collide(
-                this.context.getPaddle().getX(), this.context.getPaddle().getY(),
-                this.context.getPaddle().getPaddleWidth(), this.context.getPaddle().getPaddleHeight())) {
+        Ball ball = this.context.getBall();
+        Paddle paddle = this.context.getPaddle();
+        if (ball.getVelocityY() > 0 && ball.collide(
+                paddle.getX(), paddle.getY(),
+                paddle.getPaddleWidth(), paddle.getPaddleHeight())) {
 
-            this.context.getBall().reverseVelocityY();
+            ball.setY(paddle.getY() - ball.getRadius());
+            ball.reverseVelocityY();
         }
 
         if (this.context.getBall().isAlive()) {
 
-            life.setText(String.valueOf(this.context.getBall().getLife()));
+            life.setText(String.valueOf(ball.getLife()));
 
             if (this.context.hasClearedRequiredBricks()) {
                 this.dispose();
@@ -270,21 +273,19 @@ public class JBreakout extends JFrame implements KeyListener {
             new MainGame();
         }
 
-        for (Brick brick : this.context.getBricks()) {
+        Opt.ofNullable(ball.findFirstHitBrick(this.context.getBricks())).ifPresent(hitBrick -> {
 
-            if (brick.isAlive() && this.context.getBall().collide(brick.getX(), brick.getY(), brick.getWidth(), Brick.HEIGHT)) {
+            ball.bounceOffRectangle(hitBrick.getX(), hitBrick.getY(), hitBrick.getWidth(), Brick.HEIGHT);
 
-                this.context.getBall().reverseVelocityY();
+            hitBrick.setAlive(false);
+            roundState.decreaseRemainingBrickCount();
 
-                brick.setAlive(false);
-                roundState.decreaseRemainingBrickCount();
-
-                roundState.addScore(BreakoutGameContext.BRICK_SCORE.getOrDefault(brick.getColor(), 5));
-            }
-        }
+            roundState.addScore(BreakoutGameContext.BRICK_SCORE.getOrDefault(hitBrick.getColor(), 5));
+        });
 
         status.setText(roundState.isPause() ? "游戏暂停" : "游戏进行中");
     }
+
 
     /**
      * 随机选择一首游戏背景音乐

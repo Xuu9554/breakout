@@ -71,7 +71,18 @@ public class GameSupporter {
      * @return {@link Opt}<{@link String}> 当前登录用户账号
      */
     public static Opt<String> loadCurrentLoggedInUserId() {
-        return Opt.ofBlankAble(CURRENT_USER_PATH).filter(FileUtil::exist).map(FileUtil::readUtf8String);
+        return loadCurrentUser().map(User::getUserId);
+    }
+
+    /**
+     * 获取当前登录用户
+     *
+     * @return {@link Opt}<{@link User}> 当前登录用户
+     */
+    public static Opt<User> loadCurrentUser() {
+        return Opt.ofBlankAble(CURRENT_USER_PATH)
+                .filter(FileUtil::exist).map(FileUtil::readUtf8String)
+                .filter(StrUtil::isNotBlank).map(GameSupporter::fetchCurrentUserOrLogout);
     }
 
     /**
@@ -80,7 +91,7 @@ public class GameSupporter {
      * @return {@link User} 当前登录用户
      */
     public static User requireCurrentUser() {
-        return loadCurrentLoggedInUserId().map(GameSupporter::fetchUser).orElseThrow(ServiceException::new, "请先登录！");
+        return loadCurrentUser().orElseThrow(ServiceException::new, "请先登录！");
     }
 
     /**
@@ -88,6 +99,20 @@ public class GameSupporter {
      */
     public static void logout() {
         FileUtil.del(CURRENT_USER_PATH);
+    }
+
+    /**
+     * 查询当前登录用户，用户不存在时清理失效登录态
+     *
+     * @param userId 用户账号
+     * @return {@link User} 当前登录用户
+     */
+    private static User fetchCurrentUserOrLogout(String userId) {
+        User user;
+        if (ObjectUtil.isNull(user = fetchUser(userId))) {
+            logout();
+        }
+        return user;
     }
 
     // ------------------------------------------------------------------------------------------------------------------------

@@ -50,7 +50,7 @@ public class Record extends AbstractGameFrame {
      */
     private void confirmRecord(User currentUser, BreakoutGameResult gameResult) {
         this.saveRecord(currentUser, gameResult);
-        JOptionPane.showMessageDialog(this, "操作成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
+        // JOptionPane.showMessageDialog(this, "操作成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
         this.setVisible(false);
         new RecordList();
     }

@@ -1,37 +1,31 @@
+import ui.GameDrawable;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BreakoutComponents extends JComponent {
 
-    /**
-     * 当前局挡板
-     */
-    private final Paddle paddle;
+    private static final long serialVersionUID = -2271405512668523043L;
 
     /**
-     * 当前局小球
+     * 当前局可绘制对象列表
      */
-    private final Ball ball;
-
-    /**
-     * 当前局砖块列表
-     */
-    private final List<Brick> bricks;
+    private final List<GameDrawable> drawables;
 
     public BreakoutComponents(Paddle paddle, Ball ball, List<Brick> bricks) {
-        this.paddle = paddle;
-        this.ball = ball;
-        this.bricks = bricks;
+        this.drawables = new ArrayList<>();
+        this.drawables.add(paddle);
+        this.drawables.add(ball);
+        this.drawables.addAll(bricks);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        this.paddle.draw(g);
-        this.ball.draw(g);
-        for (Brick brick : this.bricks) {
-            brick.draw(g);
-        }
+        super.paintComponent(g);
+        Graphics2D graphics = (Graphics2D) g;
+        this.drawables.forEach(drawable -> drawable.draw(graphics));
     }
 
 }
