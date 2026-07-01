@@ -1,12 +1,11 @@
+package view;
+
 import cn.hutool.core.collection.CollUtil;
 import db.BreakoutMapper;
 import db.MapperExecutor;
 import dto.RecordRankTableModel;
 import dto.User;
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+import ui.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -17,7 +16,7 @@ import java.util.List;
 import static ui.GameFonts.RANK_TABLE_HEADER;
 import static ui.GameFonts.RANK_TABLE_TEXT;
 
-public class RecordList extends AbstractGameFrame {
+public class LeaderboardFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = 4063485659525045767L;
 
@@ -51,7 +50,7 @@ public class RecordList extends AbstractGameFrame {
      */
     private List<User> records;
 
-    public RecordList() {
+    public LeaderboardFrame() {
         this.openWindow(GameWindowConfig
                 .of("打~砖~块", WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT)
                 .setLayout(new BorderLayout()).setCloseOperation(WindowConstants.EXIT_ON_CLOSE));
@@ -67,11 +66,10 @@ public class RecordList extends AbstractGameFrame {
             return;
         }
 
-        int result = JOptionPane.showConfirmDialog(null, "榜上无名啊，要不新开一把？", "提示", JOptionPane.YES_NO_OPTION);
-        if (result == JOptionPane.YES_OPTION) {
-            SwingUtilities.invokeLater(() -> JBreakout.open(this));
+        if (SwingDialogs.confirm(null, "榜上无名啊，要不新开一把？")) {
+            SwingUtilities.invokeLater(() -> BreakoutGameFrame.open(this));
         } else {
-            new MainGame();
+            new MainMenuFrame();
         }
     }
 
@@ -89,7 +87,7 @@ public class RecordList extends AbstractGameFrame {
                 .button("返回主界面", 350, 20, 150, 50, Color.GREEN);
         backHomeButton.setFocusPainted(false);
         backHomeButton.setBorderPainted(false);
-        SwingActionFactory.with(this).bind(backHomeButton, this::backHome);
+        SwingActionFactory.with(this).bind(backHomeButton, () -> SwingWindows.disposeAndOpen(this, MainMenuFrame::new));
 
         this.showRecordWindow(panel, this.records);
     }
@@ -134,15 +132,6 @@ public class RecordList extends AbstractGameFrame {
 
         panel.add(scrollPane, BorderLayout.CENTER);
         panel.add(this.actionPanel, BorderLayout.SOUTH);
-    }
-
-    /**
-     * 返回主界面
-     */
-    private void backHome() {
-        this.setVisible(false);
-        this.dispose();
-        new MainGame();
     }
 
     /**

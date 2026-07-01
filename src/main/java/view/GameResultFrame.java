@@ -1,11 +1,11 @@
+package view;
+
 import cn.hutool.core.util.ObjectUtil;
 import db.MapperExecutor;
 import dto.BreakoutGameResult;
 import dto.User;
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+import support.GameSupporter;
+import ui.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,13 +13,13 @@ import java.awt.*;
 import static ui.GameFonts.RECORD_SCORE;
 import static ui.GameFonts.RECORD_TEXT;
 
-public class Record extends AbstractGameFrame {
+public class GameResultFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = 2306704671104481919L;
 
     private final BreakoutGameResult gameResult;
 
-    public Record(BreakoutGameResult gameResult) {
+    public GameResultFrame(BreakoutGameResult gameResult) {
         this.gameResult = gameResult;
         this.openWindow(GameWindowConfig.of(gameResult.getTitle(), 650, 330, 380, 230).setCloseOperation(WindowConstants.EXIT_ON_CLOSE));
     }
@@ -50,9 +50,7 @@ public class Record extends AbstractGameFrame {
      */
     private void confirmRecord(User currentUser, BreakoutGameResult gameResult) {
         this.saveRecord(currentUser, gameResult);
-        // JOptionPane.showMessageDialog(this, "操作成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
-        this.setVisible(false);
-        new RecordList();
+        SwingWindows.hideAndOpen(this, LeaderboardFrame::new);
     }
 
     /**

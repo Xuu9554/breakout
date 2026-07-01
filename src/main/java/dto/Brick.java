@@ -1,3 +1,5 @@
+package dto;
+
 import lombok.Data;
 import ui.GameDrawable;
 

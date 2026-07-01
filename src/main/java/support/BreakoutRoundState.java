@@ -1,3 +1,5 @@
+package support;
+
 import dto.GameSetting;
 import lombok.Data;
 

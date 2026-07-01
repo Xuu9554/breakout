@@ -1,3 +1,8 @@
+package view;
+
+import dto.Ball;
+import dto.Brick;
+import dto.Paddle;
 import ui.GameDrawable;
 
 import javax.swing.*;
@@ -5,7 +10,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BreakoutComponents extends JComponent {
+public class BreakoutGameCanvas extends JComponent {
 
     private static final long serialVersionUID = -2271405512668523043L;
 
@@ -14,7 +19,7 @@ public class BreakoutComponents extends JComponent {
      */
     private final List<GameDrawable> drawables;
 
-    public BreakoutComponents(Paddle paddle, Ball ball, List<Brick> bricks) {
+    public BreakoutGameCanvas(Paddle paddle, Ball ball, List<Brick> bricks) {
         this.drawables = new ArrayList<>();
         this.drawables.add(paddle);
         this.drawables.add(ball);

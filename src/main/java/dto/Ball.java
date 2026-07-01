@@ -1,5 +1,8 @@
+package dto;
+
 import cn.hutool.core.util.ObjectUtil;
 import lombok.Data;
+import support.BreakoutGameContext;
 import ui.GameDrawable;
 
 import java.awt.*;

@@ -1,10 +1,12 @@
+package support;
+
 import cn.hutool.core.util.RandomUtil;
 import db.BreakoutMapper;
 import db.MapperExecutor;
-import dto.GameSetting;
-import dto.User;
+import dto.*;
 import lombok.Data;
 import ui.GameAudioPlayer;
+import view.BreakoutGameCanvas;
 
 import java.awt.*;
 import java.util.List;
@@ -36,7 +38,7 @@ public class BreakoutGameContext {
     /**
      * 游戏绘制组件
      */
-    private final BreakoutComponents breakoutComponents;
+    private final BreakoutGameCanvas breakoutGameCanvas;
 
     /**
      * 当前局刷新计时器
@@ -72,7 +74,7 @@ public class BreakoutGameContext {
         this.roundState = new BreakoutRoundState();
         this.audioPlayer = new GameAudioPlayer();
 
-        this.breakoutComponents = new BreakoutComponents(this.paddle, this.ball, this.bricks);
+        this.breakoutGameCanvas = new BreakoutGameCanvas(this.paddle, this.ball, this.bricks);
         this.highestScore = MapperExecutor.query(BreakoutMapper::fetchCurrentLoggedInUserHighScore);
 
         this.roundState.reset(BRICK_COUNT);

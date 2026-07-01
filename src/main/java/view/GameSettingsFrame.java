@@ -1,12 +1,13 @@
+package view;
+
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import dto.GameSetting;
 import exception.ServiceAssert;
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+import support.BreakoutGameContext;
+import support.GameSupporter;
+import ui.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 
 import static ui.GameFonts.FORM_TEXT;
 
-public class Setting extends AbstractGameFrame {
+public class GameSettingsFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = -8966949405858572793L;
 
@@ -47,7 +48,7 @@ public class Setting extends AbstractGameFrame {
     /**
      * 打开游戏设置窗口
      */
-    public Setting() {
+    public GameSettingsFrame() {
         this(null);
     }
 
@@ -56,9 +57,9 @@ public class Setting extends AbstractGameFrame {
      *
      * @param settingAppliedAction 保存后的配置回调
      */
-    public Setting(Consumer<GameSetting> settingAppliedAction) {
+    public GameSettingsFrame(Consumer<GameSetting> settingAppliedAction) {
         this.settingAppliedAction = settingAppliedAction;
-        this.openWindow(GameWindowConfig.of("Game Setting", 650, 330, 380, 280));
+        this.openWindow(GameWindowConfig.of("Game Settings", 650, 330, 380, 280));
     }
 
     /**
@@ -90,7 +91,7 @@ public class Setting extends AbstractGameFrame {
         formFactory.label("通关块数", 30, 130, 180, 30);
         formFactory.component(this.clearBrickCount, 110, 130, 50, 30);
         this.clearBrickCount.setText(String.valueOf(gameSetting.getClearBrickCount()));
-        formFactory.label("建议输入1-" + MAX_CLEAR_BRICK_COUNT + "之间的整数", 170, 130, 180, 30, Color.RED);
+        formFactory.label(StrUtil.format("建议输入1-{}之间的整数", MAX_CLEAR_BRICK_COUNT), 170, 130, 180, 30, Color.RED);
 
         SwingActionFactory.with(this).bind(formFactory.button("Apply", 230, 180, 110, 30, Color.GREEN), this::applySetting);
     }
@@ -119,8 +120,8 @@ public class Setting extends AbstractGameFrame {
                 ObjectUtil.isNull(this.settingAppliedAction) ? "下局生效" : "当前局已生效",
                 gameSetting.getBallLife(), gameSetting.getBallSize(), gameSetting.getFps(), gameSetting.getClearBrickCount());
 
-        JOptionPane.showMessageDialog(this, message, "操作成功！", JOptionPane.INFORMATION_MESSAGE);
-        this.setVisible(false);
+        SwingDialogs.information(this, message, "操作成功！");
+        SwingWindows.hide(this);
     }
 
     /**

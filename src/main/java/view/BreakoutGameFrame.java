@@ -1,10 +1,16 @@
+package view;
+
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.RandomUtil;
-import dto.BreakoutGameResult;
-import dto.GameSetting;
+import dto.*;
 import lombok.extern.slf4j.Slf4j;
+import support.BreakoutGameContext;
+import support.BreakoutRoundState;
+import support.GameSupporter;
 import ui.SwingActionExecutor;
+import ui.SwingDialogs;
 import ui.SwingFormFactory;
+import ui.SwingWindows;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +23,7 @@ import java.util.TimerTask;
 import static ui.GameFonts.GAME_INFO_TEXT;
 
 @Slf4j
-public class JBreakout extends JFrame implements KeyListener {
+public class BreakoutGameFrame extends JFrame implements KeyListener {
 
     private static final long serialVersionUID = 4655988232932265069L;
 
@@ -103,16 +109,16 @@ public class JBreakout extends JFrame implements KeyListener {
      */
     public static void open(Component parent) {
         SwingActionExecutor.execute(parent, () -> {
-            JBreakout breakout = new JBreakout();
+            BreakoutGameFrame breakout = new BreakoutGameFrame();
             breakout.setBackground(Color.WHITE);
             breakout.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             breakout.setLocation(WINDOW_X, WINDOW_Y);
             breakout.setVisible(true);
-            breakout.setBreakoutComponents();
+            breakout.setBreakoutGameCanvas();
         });
     }
 
-    private JBreakout() {
+    private BreakoutGameFrame() {
 
         this.context = new BreakoutGameContext(GameSupporter.requireCurrentUser());
 
@@ -149,11 +155,11 @@ public class JBreakout extends JFrame implements KeyListener {
         formFactory.label("您已获得:", 30, 550, 190, 40);
         JLabel hadGainScore = formFactory.label("", 130, 550, 80, 40, Color.MAGENTA);
 
-        formFactory.component(this.context.getBreakoutComponents(), 0, 0, BREAKOUT_COMPONENT_WIDTH, APPLICATION_HEIGHT);
+        formFactory.component(this.context.getBreakoutGameCanvas(), 0, 0, BREAKOUT_COMPONENT_WIDTH, APPLICATION_HEIGHT);
 
         this.add(gamePanel);
-        this.context.getBreakoutComponents().addKeyListener(this);
-        this.context.getBreakoutComponents().setFocusable(true);
+        this.context.getBreakoutGameCanvas().addKeyListener(this);
+        this.context.getBreakoutGameCanvas().setFocusable(true);
 
         this.switchBackgroundMusic(this.randomBackgroundMusic());
 
@@ -172,7 +178,7 @@ public class JBreakout extends JFrame implements KeyListener {
 
             @Override
             public void run() {
-                JBreakout.this.gameLoop.run();
+                BreakoutGameFrame.this.gameLoop.run();
             }
 
         }, 0, 1000 / this.context.getRoundState().getPeriod());
@@ -193,7 +199,7 @@ public class JBreakout extends JFrame implements KeyListener {
         BreakoutRoundState roundState = this.context.getRoundState();
 
         this.updateBrickWidth();
-        this.context.getBreakoutComponents().repaint();
+        this.context.getBreakoutGameCanvas().repaint();
 
         if (this.context.getBall().moveAndBounce(roundState.getBoardWidth(), APPLICATION_HEIGHT, roundState.isPause(),
                 roundState.getRemainingBrickCount(), this.context.getPaddle())) {
@@ -218,10 +224,8 @@ public class JBreakout extends JFrame implements KeyListener {
 
         Ball ball = this.context.getBall();
         Paddle paddle = this.context.getPaddle();
-        if (ball.getVelocityY() > 0 && ball.collide(
-                paddle.getX(), paddle.getY(),
-                paddle.getPaddleWidth(), paddle.getPaddleHeight())) {
 
+        if (ball.getVelocityY() > 0 && ball.collide(paddle.getX(), paddle.getY(), paddle.getPaddleWidth(), paddle.getPaddleHeight())) {
             ball.setY(paddle.getY() - ball.getRadius());
             ball.reverseVelocityY();
         }
@@ -231,14 +235,13 @@ public class JBreakout extends JFrame implements KeyListener {
             life.setText(String.valueOf(ball.getLife()));
 
             if (this.context.hasClearedRequiredBricks()) {
-                this.dispose();
                 this.context.getTimer().cancel();
                 this.stopMusic();
                 this.playEndingMusic("/music/win.wav");
-                this.setVisible(false);
+                SwingWindows.dispose(this);
 
                 String title = roundState.getScore() > this.context.getHighestScore() ? "恭喜您打破本机记录！" : "恭喜您成功通关！";
-                new Record(BreakoutGameResult.of(title, roundState.getScore()));
+                new GameResultFrame(BreakoutGameResult.of(title, roundState.getScore()));
             }
 
         } else {
@@ -247,10 +250,9 @@ public class JBreakout extends JFrame implements KeyListener {
             status.setText("游戏终止");
             this.stopMusic();
             this.playEndingMusic("/music/lose.wav");
-            JOptionPane.showMessageDialog(null, "叭好意思您失败了~", "游戏结束", JOptionPane.INFORMATION_MESSAGE);
-            this.setVisible(false);
+            SwingDialogs.information(null, "叭好意思您失败了~", "游戏结束");
             this.context.getTimer().cancel();
-            new MainGame();
+            SwingWindows.hideAndOpen(this, MainMenuFrame::new);
         }
 
         Opt.ofNullable(ball.findFirstHitBrick(this.context.getBricks())).ifPresent(hitBrick -> {
@@ -364,7 +366,7 @@ public class JBreakout extends JFrame implements KeyListener {
             this.context.restartTimer();
             this.scheduleGameLoop();
         }
-        this.context.getBreakoutComponents().repaint();
+        this.context.getBreakoutGameCanvas().repaint();
     }
 
     /**
@@ -389,7 +391,7 @@ public class JBreakout extends JFrame implements KeyListener {
         }
     }
 
-    public void setBreakoutComponents() {
+    public void setBreakoutGameCanvas() {
         BreakoutRoundState roundState = this.context.getRoundState();
         roundState.setBoardWidth(this.getContentPane().getWidth());
         int boardHeight = this.getContentPane().getHeight();
@@ -418,7 +420,7 @@ public class JBreakout extends JFrame implements KeyListener {
             case KeyEvent.VK_ESCAPE:
                 roundState.setPause(true);
                 this.context.getAudioPlayer().pause();
-                new Setting(this::applyCurrentRoundSetting);
+                new GameSettingsFrame(this::applyCurrentRoundSetting);
                 break;
         }
     }

@@ -1,16 +1,16 @@
+package view;
+
 import cn.hutool.core.util.StrUtil;
 import exception.ServiceAssert;
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+import support.GameSupporter;
+import ui.*;
 
 import javax.swing.*;
 import java.awt.*;
 
 import static ui.GameFonts.FORM_TEXT;
 
-public class Register extends AbstractGameFrame {
+public class RegistrationFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = 6048411083655101761L;
 
@@ -32,7 +32,7 @@ public class Register extends AbstractGameFrame {
     /**
      * 打开用户注册窗口
      */
-    public Register() {
+    public RegistrationFrame() {
         this.openWindow(GameWindowConfig.of("用户注册", 650, 330, 380, 280));
     }
 
@@ -73,8 +73,8 @@ public class Register extends AbstractGameFrame {
         ServiceAssert.isTrue(password.equals(confirmPassword), "密码不匹配！");
 
         GameSupporter.register(this.userIdField.getText(), password);
-        JOptionPane.showMessageDialog(Register.this, "注册成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
-        this.setVisible(false);
+        SwingDialogs.information(this, "注册成功！");
+        SwingWindows.hide(this);
     }
 
     /**

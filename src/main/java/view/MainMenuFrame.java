@@ -1,10 +1,9 @@
+package view;
+
 import cn.hutool.core.lang.Opt;
-import db.DataSourceBootstrap;
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionExecutor;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+import support.GameSupporter;
+import support.LoginGuard;
+import ui.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +11,7 @@ import java.time.LocalTime;
 
 import static ui.GameFonts.MAIN_MENU_TEXT;
 
-public class MainGame extends AbstractGameFrame {
+public class MainMenuFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = -4482258986636771110L;
 
@@ -51,7 +50,7 @@ public class MainGame extends AbstractGameFrame {
      */
     private final static int MENU_BUTTON_HEIGHT = 60;
 
-    public MainGame() {
+    public MainMenuFrame() {
         this.openWindow(GameWindowConfig.of("打~砖~块", WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT).setCloseOperation(JFrame.EXIT_ON_CLOSE));
     }
 
@@ -62,6 +61,7 @@ public class MainGame extends AbstractGameFrame {
      */
     @Override
     protected void buildContent(JPanel panel) {
+
         SwingFormFactory formFactory = SwingFormFactory.with(panel, MAIN_MENU_TEXT);
         SwingActionFactory actionFactory = SwingActionFactory.with(this);
 
@@ -71,14 +71,16 @@ public class MainGame extends AbstractGameFrame {
             actionFactory.bind(this.menuButton(formFactory, "退出登录", 550, Color.RED), this::logout);
         } else {
             actionFactory
-                    .bind(this.menuButton(formFactory, "注册", 470, Color.WHITE), Register::new)
-                    .bind(this.menuButton(formFactory, "登陆", 550, Color.WHITE), this::openLogin);
+                    .bind(this.menuButton(formFactory, "注册", 470, Color.WHITE), RegistrationFrame::new)
+                    .bind(this.menuButton(formFactory, "登陆", 550, Color.WHITE), () -> SwingWindows.hideAndOpen(this, LoginFrame::new));
         }
 
         actionFactory
                 .bind(this.menuButton(formFactory, "单人游戏", 110, Color.WHITE), this::startSingleGame)
-                .bind(this.menuButton(formFactory, "游戏设置", 190, Color.WHITE), this::openGameSetting)
-                .bind(this.menuButton(formFactory, "英雄榜", 270, Color.WHITE), this::openRecordList)
+                .bind(this.menuButton(formFactory, "游戏设置", 190, Color.WHITE),
+                        () -> LoginGuard.of(this).run(GameSettingsFrame::new))
+                .bind(this.menuButton(formFactory, "英雄榜", 270, Color.WHITE),
+                        () -> LoginGuard.of(this).run(() -> SwingWindows.hideAndOpen(this, LeaderboardFrame::new)))
                 .bind(this.menuButton(formFactory, "退出游戏", 350, Color.WHITE), () -> System.exit(1));
     }
 
@@ -129,27 +131,9 @@ public class MainGame extends AbstractGameFrame {
      */
     private void startSingleGame() throws Exception {
         LoginGuard.of(this).run(() -> {
-            this.setVisible(false);
-            this.dispose();
-            SwingUtilities.invokeLater(() -> JBreakout.open(this));
+            SwingWindows.dispose(this);
+            SwingUtilities.invokeLater(() -> BreakoutGameFrame.open(this));
         });
-    }
-
-    /**
-     * 打开游戏设置窗口
-     *
-     * @throws Exception 打开设置失败时抛出异常
-     */
-    private void openGameSetting() throws Exception {
-        LoginGuard.of(this).run(Setting::new);
-    }
-
-    /**
-     * 打开登录窗口
-     */
-    private void openLogin() {
-        this.setVisible(false);
-        new Login();
     }
 
     /**
@@ -157,28 +141,8 @@ public class MainGame extends AbstractGameFrame {
      */
     private void logout() {
         GameSupporter.logout();
-        JOptionPane.showMessageDialog(this, "退出登录成功！", "提示", JOptionPane.INFORMATION_MESSAGE);
-        this.setVisible(false);
-        new MainGame();
-    }
-
-    /**
-     * 打开排行榜窗口
-     *
-     * @throws Exception 打开排行榜失败时抛出异常
-     */
-    private void openRecordList() throws Exception {
-        LoginGuard.of(this).run(() -> {
-            new RecordList();
-            this.setVisible(false);
-        });
-    }
-
-    public static void main(String[] args) {
-        SwingActionExecutor.execute(null, () -> {
-            DataSourceBootstrap.initialize();
-            SwingUtilities.invokeLater(() -> SwingActionExecutor.execute(null, MainGame::new));
-        });
+        SwingDialogs.information(this, "退出登录成功！");
+        SwingWindows.hideAndOpen(this, MainMenuFrame::new);
     }
 
 }

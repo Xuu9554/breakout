@@ -1,14 +1,14 @@
-import ui.AbstractGameFrame;
-import ui.GameWindowConfig;
-import ui.SwingActionFactory;
-import ui.SwingFormFactory;
+package view;
+
+import support.GameSupporter;
+import ui.*;
 
 import javax.swing.*;
 import java.awt.*;
 
 import static ui.GameFonts.FORM_TEXT;
 
-public class Login extends AbstractGameFrame {
+public class LoginFrame extends AbstractGameFrame {
 
     private static final long serialVersionUID = 1504087619736129919L;
 
@@ -22,7 +22,7 @@ public class Login extends AbstractGameFrame {
      */
     private JPasswordField passwordField;
 
-    public Login() {
+    public LoginFrame() {
         this.openWindow(GameWindowConfig.of("用户登录", 650, 330, 380, 280).setCloseOperation(JFrame.DO_NOTHING_ON_CLOSE));
     }
 
@@ -53,16 +53,14 @@ public class Login extends AbstractGameFrame {
      */
     private void login() {
         GameSupporter.login(this.userIdField.getText(), String.valueOf(this.passwordField.getPassword()));
-        this.setVisible(false);
-        new MainGame();
+        SwingWindows.hideAndOpen(this, MainMenuFrame::new);
     }
 
     /**
      * 不登录，直接回到主界面
      */
     private void backHome() {
-        this.setVisible(false);
-        new MainGame();
+        SwingWindows.hideAndOpen(this, MainMenuFrame::new);
     }
 
 }

@@ -8,7 +8,7 @@
     <artifactId>breakout</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Breakout</name>
-    <description>A classic Java Swing breakout game.</description>
+    <description>Breakout</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,7 +90,7 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>MainGame</mainClass>
+                                    <mainClass>Application</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

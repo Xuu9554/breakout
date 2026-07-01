@@ -1,11 +1,13 @@
-import ui.SwingOperation;
+package support;
 
-import javax.swing.*;
+import ui.SwingDialogs;
+import ui.SwingOperation;
+import ui.SwingWindows;
+import view.LoginFrame;
+
 import java.awt.*;
 
 public class LoginGuard {
-
-    private final static String LOGIN_REQUIRED_MESSAGE = "请先登录！";
 
     private final Component parent;
 
@@ -43,13 +45,8 @@ public class LoginGuard {
      */
     private void openLoginIfConfirmed() {
 
-        int result = JOptionPane.showConfirmDialog(this.parent, LOGIN_REQUIRED_MESSAGE, "提示", JOptionPane.YES_NO_OPTION);
-
-        if (result == JOptionPane.YES_OPTION) {
-            if (this.parent instanceof Window) {
-                this.parent.setVisible(false);
-            }
-            new Login();
+        if (SwingDialogs.confirm(this.parent, "请先登录！")) {
+            SwingWindows.hideAndOpen(this.parent, LoginFrame::new);
         }
     }
 
