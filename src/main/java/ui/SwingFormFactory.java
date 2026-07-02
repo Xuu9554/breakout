@@ -5,9 +5,7 @@ import cn.hutool.core.lang.Opt;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Swing表单组件工厂
- */
+@SuppressWarnings("UnusedReturnValue")
 public class SwingFormFactory {
 
     private final JPanel panel;
@@ -87,21 +85,6 @@ public class SwingFormFactory {
         JPasswordField passwordField = this.component(new JPasswordField(), x, y, width, height);
         passwordField.setEchoChar('*');
         return passwordField;
-    }
-
-    /**
-     * 创建普通按钮并加入面板
-     *
-     * @param buttonName 按钮文案
-     * @param x          横坐标
-     * @param y          纵坐标
-     * @param width      宽度
-     * @param height     高度
-     * @param background 背景色
-     * @return {@link JButton} 按钮
-     */
-    public JButton button(String buttonName, int x, int y, int width, int height, Color background) {
-        return this.button(new JButton(buttonName), x, y, width, height, background);
     }
 
     /**

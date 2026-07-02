@@ -14,11 +14,21 @@ public abstract class AbstractGameFrame extends JFrame {
      * @param config 窗口配置
      */
     protected final void openWindow(GameWindowConfig config) {
-        this.beforeOpen();
-        JPanel panel = new JPanel(config.getLayout());
-        panel.setBackground(config.getBackground());
+        JPanel panel = this.createContentPanel(config);
         this.buildContent(panel);
         this.showWindow(panel, config);
+    }
+
+    /**
+     * 创建窗口内容面板
+     *
+     * @param config 窗口配置
+     * @return {@link JPanel} 窗口内容面板
+     */
+    protected JPanel createContentPanel(GameWindowConfig config) {
+        JPanel panel = new JPanel(config.getLayout());
+        panel.setBackground(config.getBackground());
+        return panel;
     }
 
     /**
@@ -34,13 +44,6 @@ public abstract class AbstractGameFrame extends JFrame {
         this.setBounds(config.getX(), config.getY(), config.getWidth(), config.getHeight());
         Opt.ofNullable(config.getCloseOperation()).ifPresent(this::setDefaultCloseOperation);
         this.setVisible(true);
-    }
-
-    /**
-     * 窗口打开前的准备钩子
-     */
-    protected void beforeOpen() {
-
     }
 
     /**

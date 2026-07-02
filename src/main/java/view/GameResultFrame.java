@@ -20,8 +20,12 @@ public class GameResultFrame extends AbstractGameFrame {
     private final BreakoutGameResult gameResult;
 
     public GameResultFrame(BreakoutGameResult gameResult) {
+
         this.gameResult = gameResult;
-        this.openWindow(GameWindowConfig.of(gameResult.getTitle(), 650, 330, 380, 230).setCloseOperation(WindowConstants.EXIT_ON_CLOSE));
+
+        this.openWindow(GameWindowConfig
+                .of(gameResult.getTitle(), WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT)
+                .setBackground(PANEL_BACKGROUND).setCloseOperation(WindowConstants.EXIT_ON_CLOSE));
     }
 
     /**
@@ -31,39 +35,81 @@ public class GameResultFrame extends AbstractGameFrame {
      */
     @Override
     protected void buildContent(JPanel panel) {
+
         User currentUser = GameSupporter.requireCurrentUser();
         SwingFormFactory formFactory = SwingFormFactory.with(panel, RECORD_TEXT);
 
-        formFactory.label("您的大名：", 30, 25, 180, 30);
-        formFactory.label(currentUser.getUserId(), 170, 25, 150, 30).setFont(RECORD_TEXT);
+        JLabel title = formFactory.label(this.gameResult.getTitle(), 0, 30, WINDOW_WIDTH, 42, TITLE_COLOR);
+        title.setFont(RECORD_SCORE);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
 
-        formFactory.label("您的成绩：", 30, 80, 180, 30);
-        JLabel scoreLabel = formFactory.label(String.valueOf(gameResult.getScore()), 170, 80, 180, 30, Color.RED);
+        formFactory.label("您的大名：", 106, 104, 110, 30, LABEL_TEXT_COLOR);
+        formFactory.label(currentUser.getUserId(), 224, 104, 180, 30, LABEL_TEXT_COLOR).setFont(RECORD_TEXT);
+
+        formFactory.label("您的成绩：", 106, 150, 110, 30, LABEL_TEXT_COLOR);
+        JLabel scoreLabel = formFactory.label(String.valueOf(gameResult.getScore()), 224, 142, 180, 42, TITLE_COLOR);
         scoreLabel.setFont(RECORD_SCORE);
 
-        SwingActionFactory.with(this)
-                .bind(formFactory.button("确定", 230, 140, 110, 30, Color.GREEN), () -> this.confirmRecord(currentUser, this.gameResult));
+        JButton confirmButton = formFactory.button(new ArcadeMenuButton("确定"), 190, 218, 120, 40, BUTTON_BLUE);
+        confirmButton.setForeground(Color.WHITE);
+        confirmButton.setFont(RECORD_TEXT);
+        confirmButton.setFocusPainted(false);
+        confirmButton.setBorderPainted(false);
+
+        SwingActionFactory.with(this).bind(confirmButton, () -> this.confirmRecord(currentUser, this.gameResult));
     }
 
     /**
      * 确认并保存当前成绩
      */
     private void confirmRecord(User currentUser, BreakoutGameResult gameResult) {
-        this.saveRecord(currentUser, gameResult);
-        SwingWindows.hideAndOpen(this, LeaderboardFrame::new);
-    }
-
-    /**
-     * 保存当前最高成绩
-     *
-     * @param currentUser 当前登录用户
-     * @param gameResult  游戏结果
-     */
-    private void saveRecord(User currentUser, BreakoutGameResult gameResult) {
         Integer highScore = currentUser.getHighScore();
         if (ObjectUtil.isNull(highScore) || gameResult.getScore() > highScore) {
             MapperExecutor.execute(mapper -> mapper.updateHighScore(currentUser.getUserId(), gameResult.getScore()));
         }
+        LeaderboardFrame.open(this);
     }
+
+    // ------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 成绩确认窗口横坐标
+     */
+    private final static int WINDOW_X = 650;
+
+    /**
+     * 成绩确认窗口纵坐标
+     */
+    private final static int WINDOW_Y = 315;
+
+    /**
+     * 成绩确认窗口宽度
+     */
+    private final static int WINDOW_WIDTH = 500;
+
+    /**
+     * 成绩确认窗口高度
+     */
+    private final static int WINDOW_HEIGHT = 300;
+
+    /**
+     * 成绩确认页背景色
+     */
+    private final static Color PANEL_BACKGROUND = new Color(248, 250, 252);
+
+    /**
+     * 成绩确认页标题颜色
+     */
+    private final static Color TITLE_COLOR = new Color(42, 107, 255);
+
+    /**
+     * 成绩确认页标签颜色
+     */
+    private final static Color LABEL_TEXT_COLOR = new Color(38, 50, 56);
+
+    /**
+     * 成绩确认页按钮颜色
+     */
+    private final static Color BUTTON_BLUE = new Color(42, 107, 255);
 
 }

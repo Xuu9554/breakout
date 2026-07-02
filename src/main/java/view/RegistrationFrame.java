@@ -33,7 +33,7 @@ public class RegistrationFrame extends AbstractGameFrame {
      * 打开用户注册窗口
      */
     public RegistrationFrame() {
-        this.openWindow(GameWindowConfig.of("用户注册", 650, 330, 380, 280));
+        this.openWindow(GameWindowConfig.of("用户注册", WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT).setBackground(PANEL_BACKGROUND));
     }
 
     /**
@@ -47,18 +47,43 @@ public class RegistrationFrame extends AbstractGameFrame {
 
         SwingFormFactory formFactory = SwingFormFactory.with(panel, FORM_TEXT);
 
-        formFactory.label("账号", 30, 25, 180, 30);
-        userIdField = formFactory.textField(110, 25, 180, 30);
+        JLabel title = formFactory.label("用户注册", 0, 30, WINDOW_WIDTH, 42, TITLE_COLOR);
+        title.setFont(TITLE_FONT);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
 
-        formFactory.label("密码", 30, 60, 180, 30);
-        passwordField = formFactory.passwordField(110, 60, 180, 30);
+        formFactory.label("账号", 105, 104, 90, 30, LABEL_TEXT_COLOR);
+        decorateTextField(userIdField = formFactory.textField(200, 104, 190, 30));
 
-        formFactory.label("确认密码", 30, 95, 180, 30);
-        confirmPasswordField = formFactory.passwordField(110, 95, 180, 30);
+        formFactory.label("密码", 105, 148, 90, 30, LABEL_TEXT_COLOR);
+        decorateTextField(passwordField = formFactory.passwordField(200, 148, 190, 30));
 
-        SwingActionFactory.with(this)
-                .bind(formFactory.button("确认", 230, 140, 110, 30, Color.GREEN), this::register)
-                .bind(formFactory.button("清空", 50, 140, 110, 30, Color.GREEN), this::clearForm);
+        formFactory.label("确认密码", 105, 192, 90, 30, LABEL_TEXT_COLOR);
+        decorateTextField(confirmPasswordField = formFactory.passwordField(200, 192, 190, 30));
+
+        JButton clearButton = formFactory.button(new ArcadeMenuButton("清空"), 120, 262, 116, 40, BUTTON_GRAY);
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setFont(FORM_TEXT);
+        clearButton.setFocusPainted(false);
+        clearButton.setBorderPainted(false);
+
+        JButton registerButton = formFactory.button(new ArcadeMenuButton("确认"), 264, 262, 116, 40, BUTTON_BLUE);
+        registerButton.setForeground(Color.WHITE);
+        registerButton.setFont(FORM_TEXT);
+        registerButton.setFocusPainted(false);
+        registerButton.setBorderPainted(false);
+
+        SwingActionFactory.with(this).bind(registerButton, this::register).bind(clearButton, this::clearForm);
+    }
+
+    /**
+     * 装饰注册页输入框
+     *
+     * @param textField 输入框
+     */
+    private static void decorateTextField(JTextField textField) {
+        textField.setForeground(LABEL_TEXT_COLOR);
+        textField.setBackground(Color.WHITE);
+        textField.setBorder(BorderFactory.createLineBorder(FIELD_BORDER_COLOR));
     }
 
     /**
@@ -85,5 +110,62 @@ public class RegistrationFrame extends AbstractGameFrame {
         this.passwordField.setText(null);
         this.confirmPasswordField.setText(null);
     }
+
+    // ------------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 注册窗口宽度
+     */
+    private final static int WINDOW_WIDTH = 500;
+
+    /**
+     * 注册窗口高度
+     */
+    private final static int WINDOW_HEIGHT = 360;
+
+    /**
+     * 注册窗口横坐标
+     */
+    private final static int WINDOW_X = 650;
+
+    /**
+     * 注册窗口纵坐标
+     */
+    private final static int WINDOW_Y = 285;
+
+    /**
+     * 注册页标题字体
+     */
+    private final static Font TITLE_FONT = new Font("黑体", Font.BOLD, 28);
+
+    /**
+     * 注册页背景色
+     */
+    private final static Color PANEL_BACKGROUND = new Color(248, 250, 252);
+
+    /**
+     * 注册页标题颜色
+     */
+    private final static Color TITLE_COLOR = new Color(42, 107, 255);
+
+    /**
+     * 注册页标签颜色
+     */
+    private final static Color LABEL_TEXT_COLOR = new Color(38, 50, 56);
+
+    /**
+     * 注册页输入框边框颜色
+     */
+    private final static Color FIELD_BORDER_COLOR = new Color(207, 216, 220);
+
+    /**
+     * 注册页确认按钮色
+     */
+    private final static Color BUTTON_BLUE = new Color(42, 107, 255);
+
+    /**
+     * 注册页清空按钮色
+     */
+    private final static Color BUTTON_GRAY = new Color(84, 110, 122);
 
 }
